@@ -6,17 +6,17 @@
    installed copies keep serving the old shell.
    ===================================================================== */
 
-const CACHE = 'sfc-meetings-v4';
+const CACHE = 'sfc-meetings-v5';
 
 const SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/icon-512-maskable.png',
-  './icons/apple-touch-icon.png',
-  './icons/favicon-32.png'
+  './icon-192.png',
+  './icon-512.png',
+  './icon-512-maskable.png',
+  './apple-touch-icon.png',
+  './favicon-32.png'
 ];
 
 /* Install: cache the shell, then take over immediately. */
