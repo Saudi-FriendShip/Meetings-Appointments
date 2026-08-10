@@ -1,0 +1,43 @@
+{
+  "name": "مدير الاجتماعات والمواعيد — جمعية أصدقاء السعودية",
+  "short_name": "الاجتماعات",
+  "description": "إدارة الاجتماعات والمواعيد ومحاضرها لجمعية أصدقاء السعودية.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "id": "sfc-meetings",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "browser"],
+  "orientation": "any",
+  "background_color": "#0f1512",
+  "theme_color": "#1F5C38",
+  "categories": ["productivity", "business"],
+  "icons": [
+    { "src": "./icons/favicon-32.png",         "sizes": "32x32",   "type": "image/png" },
+    { "src": "./icons/apple-touch-icon.png",   "sizes": "180x180", "type": "image/png" },
+    { "src": "./icons/icon-192.png",           "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-512.png",           "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./icons/icon-512-maskable.png",  "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "مواعيد اليوم",
+      "short_name": "اليوم",
+      "url": "./#dashboard",
+      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "التقويم",
+      "short_name": "التقويم",
+      "url": "./#calendar",
+      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "بانتظار المحضر",
+      "short_name": "المحاضر",
+      "url": "./#minutes",
+      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

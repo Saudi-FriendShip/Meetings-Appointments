@@ -1,0 +1,2397 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>مدير الاجتماعات والمواعيد | Meetings &amp; Deadlines Manager</title>
+<meta name="theme-color" content="#1F5C38">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="إدارة الاجتماعات والمواعيد ومحاضرها — جمعية أصدقاء السعودية">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="الاجتماعات">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#1F5C38; --green-d:#16452a; --green-l:#3f8f52; --gold:#C9A227; --orange:#E85200;
+  --red:#C0392B; --blue:#2b6cb0; --slate:#5c6b63;
+  --bg:#F6F4EE; --surface:#ffffff; --surface-2:#fbfaf6; --line:#e5e1d6;
+  --text:#1c241f; --text-2:#5c6b63; --text-3:#8a978f;
+  --input:#ffffff; --input-line:#d9d4c6;
+  --shadow:0 1px 2px rgba(28,36,31,.05),0 8px 24px rgba(28,36,31,.06);
+  --shadow-lg:0 24px 60px rgba(28,36,31,.18);
+  --r:14px; --r-sm:10px; --r-lg:20px;
+  --side:264px;
+  --sadu:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'><g fill='none' stroke='%23C9A227' stroke-width='1' opacity='.35'><path d='M0 20 L10 10 L20 20 L30 10 L40 20'/><path d='M0 30 L10 40 L20 30 L30 40 L40 30'/><path d='M20 0 L20 6 M0 0 L0 6 M40 0 L40 6'/></g></svg>");
+}
+html[data-theme="dark"]{
+  --bg:#0f1512; --surface:#161f1a; --surface-2:#1b251f; --line:#2a352e;
+  --text:#eef2ef; --text-2:#a9b5ad; --text-3:#7d8b83;
+  --input:#222b25; --input-line:#33403a;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.28);
+  --shadow-lg:0 24px 60px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:'Cairo','Segoe UI',Tahoma,system-ui,sans-serif;
+  background:var(--bg); color:var(--text);
+  -webkit-font-smoothing:antialiased; font-size:15px; line-height:1.6;
+}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+/* Every inline icon gets a size by default; specific rules below override it. */
+svg{width:16px;height:16px;flex:none}
+button{cursor:pointer}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px;border-radius:6px}
+.hidden{display:none !important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001ms !important;transition-duration:.001ms !important}}
+
+/* ============ BOOT SPLASH ============
+   Shown until we know whether a session exists, so a signed-in person
+   never sees the login form flash past on refresh. */
+#boot{position:fixed;inset:0;z-index:110;display:grid;place-items:center;
+  background:radial-gradient(1200px 700px at 70% -10%,#2a6f45 0%,#16452a 45%,#101a14 100%);
+  transition:opacity .28s ease}
+#boot.out{opacity:0;pointer-events:none}
+html[data-theme="light"] #boot{background:radial-gradient(1200px 700px at 70% -10%,#f2f7f3 0%,#dceae1 45%,#c8dccf 100%)}
+html[data-theme="light"] #boot .p2 circle,html[data-theme="light"] #boot .p2 path{fill:#1F5C38}
+.boot-in{display:grid;place-items:center;gap:20px}
+.boot-in svg{width:104px;height:70px}
+.boot-bar{width:132px;height:4px;border-radius:4px;background:rgba(255,255,255,.14);overflow:hidden}
+html[data-theme="light"] .boot-bar{background:rgba(31,92,56,.16)}
+.boot-bar i{display:block;width:40%;height:100%;border-radius:4px;background:#C9A227;animation:slide-bar 1.1s ease-in-out infinite}
+@keyframes slide-bar{0%{transform:translateX(-110%)}100%{transform:translateX(360%)}}
+
+/* ============ LOGIN ============ */
+#login{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:22px;
+  background:radial-gradient(1200px 700px at 70% -10%,#2a6f45 0%,#16452a 45%,#101a14 100%);}
+#login::after{content:"";position:absolute;inset:0;background-image:var(--sadu);opacity:.12;pointer-events:none}
+.login-card{position:relative;z-index:2;width:100%;max-width:400px;background:rgba(18,28,22,.72);
+  border:1px solid rgba(201,162,39,.28);border-radius:22px;padding:30px 26px 26px;backdrop-filter:blur(14px);
+  box-shadow:var(--shadow-lg);animation:rise .5s cubic-bezier(.2,.8,.2,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.logo{display:grid;place-items:center;margin-bottom:14px}
+.logo svg{width:88px;height:60px}
+.logo .p1{animation:bob 2.6s ease-in-out infinite}
+.logo .p2{animation:bob 2.6s ease-in-out .35s infinite}
+.logo .p3{animation:bob 2.6s ease-in-out .7s infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.login-card h1{margin:0;text-align:center;font-size:20px;font-weight:800;color:#fff;letter-spacing:.2px}
+.login-card p.sub{margin:6px 0 20px;text-align:center;color:#a8bdb0;font-size:13px}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:12.5px;font-weight:600;color:#a8bdb0;margin-bottom:6px}
+.field input,.field select{width:100%;background:#222b25;border:1px solid #33403a;color:#eef2ef;
+  border-radius:11px;padding:12px 13px;transition:border-color .18s,box-shadow .18s}
+.field input:focus,.field select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,162,39,.18);outline:none}
+.btn-gold{width:100%;background:linear-gradient(135deg,#d9b336,#b8901d);color:#1b1405;border:0;
+  border-radius:11px;padding:13px;font-weight:800;letter-spacing:.3px;transition:transform .15s,filter .15s}
+.btn-gold:hover{filter:brightness(1.06)} .btn-gold:active{transform:translateY(1px)}
+.lg-link{display:block;width:100%;margin-top:10px;background:none;border:0;color:#C9A227;font-size:12.5px;
+  font-weight:800;text-decoration:underline;text-underline-offset:3px;padding:4px}
+.lg-link:hover{color:#e0c25a}
+html[data-theme="light"] .lg-link{color:#8a6d10}
+.lg-tools{display:flex;gap:7px;justify-content:center;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.09)}
+html[dir="rtl"] .lg-tools{flex-direction:row-reverse}
+html[data-theme="light"] .lg-tools{border-top-color:rgba(31,92,56,.14)}
+.lg-tool{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);color:#cfe0d6;border-radius:10px;
+  padding:6px 11px;font-size:12.5px;font-weight:800;display:grid;place-items:center;transition:background .16s,color .16s,border-color .16s}
+.lg-tool:hover{background:rgba(201,162,39,.16);border-color:rgba(201,162,39,.45);color:#fff}
+.lg-tool svg{width:15px;height:15px}
+.lg-tool{min-width:44px;height:32px}
+#lg-hint{display:block;margin-top:5px}
+
+/* Sign-in screen follows the chosen theme, so the toggle is honest. */
+html[data-theme="light"] #login{background:radial-gradient(1200px 700px at 70% -10%,#f2f7f3 0%,#dceae1 45%,#c8dccf 100%)}
+html[data-theme="light"] #login::after{opacity:.22}
+html[data-theme="light"] .login-card{background:rgba(255,255,255,.9);border-color:rgba(31,92,56,.18);
+  box-shadow:0 24px 60px rgba(28,36,31,.16)}
+html[data-theme="light"] .login-card h1{color:#1F5C38}
+html[data-theme="light"] .login-card p.sub{color:#5c6b63}
+html[data-theme="light"] .field label{color:#5c6b63}
+html[data-theme="light"] .field input{background:#fff;border-color:#d9d4c6;color:#1c241f}
+html[data-theme="light"] .field input:focus{border-color:#C9A227}
+html[data-theme="light"] .login-foot{color:#7c8a82}
+html[data-theme="light"] .lg-tool{background:rgba(31,92,56,.07);border-color:rgba(31,92,56,.2);color:#3f6b51}
+html[data-theme="light"] .lg-tool:hover{background:rgba(201,162,39,.16);border-color:rgba(201,162,39,.5);color:#1F5C38}
+html[data-theme="light"] .logo .p2 circle,html[data-theme="light"] .logo .p2 path{fill:#1F5C38}
+.login-foot{margin-top:16px;text-align:center;font-size:11.5px;color:#7d8b83;line-height:1.8}
+.login-foot b{color:#c9a227;font-weight:700}
+
+/* ============ SHELL ============ */
+#app{display:none;min-height:100vh}
+#app.on{display:block}
+.side{position:fixed;inset-block:0;inset-inline-start:0;width:var(--side);z-index:40;
+  background:linear-gradient(180deg,#1F5C38 0%,#16452a 100%);color:#dfe9e2;display:flex;flex-direction:column;
+  border-inline-end:1px solid rgba(201,162,39,.2)}
+.side::before{content:"";position:absolute;inset:0;background-image:var(--sadu);opacity:.07;pointer-events:none}
+.side-top{padding:18px 18px 14px;display:flex;align-items:center;gap:11px;position:relative}
+.side-top .mark{width:38px;height:38px;border-radius:11px;background:rgba(201,162,39,.15);border:1px solid rgba(201,162,39,.35);
+  display:grid;place-items:center;flex:none}
+.side-top .mark svg{width:22px;height:22px}
+.side-top h2{margin:0;font-size:14.5px;font-weight:800;color:#fff;line-height:1.25}
+.side-top span{font-size:11px;color:#9fb8a8}
+.nav{flex:1;overflow-y:auto;padding:6px 10px 10px;position:relative}
+.nav-lbl{font-size:10.5px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:#7fa38d;padding:14px 10px 6px}
+.nav a{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:11px;text-decoration:none;
+  color:#cfe0d6;font-size:14px;font-weight:600;margin-bottom:2px;position:relative;transition:background .16s,color .16s}
+.nav a svg{width:18px;height:18px;flex:none;opacity:.85}
+.nav a:hover{background:rgba(255,255,255,.07);color:#fff}
+.nav a{position:relative;z-index:1}
+.nav a.on{background:transparent;color:#fff}
+/* One pill slides between items instead of each item lighting up. */
+.nav-pill{position:absolute;inset-inline:10px;top:0;height:0;border-radius:11px;background:rgba(201,162,39,.16);
+  z-index:0;opacity:0;pointer-events:none;
+  transition:transform .36s cubic-bezier(.2,.8,.2,1),height .28s ease,opacity .2s ease}
+.nav a.on::before{content:"";position:absolute;inset-inline-start:-10px;top:50%;transform:translateY(-50%);
+  width:4px;height:22px;border-radius:0 4px 4px 0;background:var(--gold)}
+html[dir="rtl"] .nav a.on::before{border-radius:4px 0 0 4px}
+.nav a .cnt{margin-inline-start:auto;background:rgba(255,255,255,.12);border-radius:20px;padding:1px 8px;font-size:11.5px;font-weight:700}
+.nav a .cnt.warn{background:var(--orange);color:#fff}
+.side-bot{padding:12px;border-top:1px solid rgba(255,255,255,.1);position:relative}
+.me{display:flex;align-items:center;gap:10px;padding:8px;border-radius:12px}
+.me .av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--gold),#a9821a);color:#231a03;
+  display:grid;place-items:center;font-weight:800;font-size:13px;flex:none}
+.me .nm{font-size:13px;font-weight:700;color:#fff;line-height:1.25}
+.me .rl{font-size:11px;color:#9fb8a8}
+.me button{margin-inline-start:auto;background:transparent;border:0;color:#9fb8a8;padding:6px;border-radius:8px}
+.me button:hover{background:rgba(255,255,255,.1);color:#fff}
+
+.main{margin-inline-start:var(--side);min-height:100vh;display:flex;flex-direction:column}
+.topbar{position:sticky;top:0;z-index:30;background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:12px 22px;display:flex;align-items:center;gap:12px}
+.burger{display:none;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px}
+.search{flex:1;max-width:440px;position:relative}
+.search input{width:100%;background:var(--input);border:1px solid var(--input-line);border-radius:12px;
+  padding:10px 40px 10px 14px;transition:border-color .18s,box-shadow .18s}
+html[dir="rtl"] .search input{padding:10px 40px 10px 14px}
+html[dir="ltr"] .search input{padding:10px 14px 10px 40px}
+.search input:focus{border-color:var(--green-l);box-shadow:0 0 0 3px rgba(63,143,82,.15);outline:none}
+.search svg{position:absolute;inset-inline-start:13px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:var(--text-3);pointer-events:none}
+.tb-actions{margin-inline-start:auto;display:flex;align-items:center;gap:7px}
+html[dir="rtl"] .tb-actions{flex-direction:row-reverse}
+.icon-btn{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:9px;display:grid;place-items:center;
+  color:var(--text-2);position:relative;transition:background .16s,color .16s,border-color .16s}
+.icon-btn:hover{color:var(--text);border-color:var(--green-l)}
+.icon-btn svg{width:17px;height:17px}
+.icon-btn .dot{position:absolute;top:5px;inset-inline-end:5px;min-width:16px;height:16px;border-radius:9px;background:var(--orange);
+  color:#fff;font-size:10px;font-weight:800;display:grid;place-items:center;padding:0 4px}
+.lang-btn{font-weight:800;font-size:12.5px;padding:9px 12px;min-width:44px}
+.page{padding:22px;max-width:1400px;width:100%;flex:1}
+.page-head{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+.page-head h1{margin:0;font-size:24px;font-weight:800;letter-spacing:-.2px}
+.page-head p{margin:3px 0 0;color:var(--text-2);font-size:13.5px}
+.page-head .right{margin-inline-start:auto;display:flex;gap:8px;flex-wrap:wrap}
+
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--text);border-radius:11px;padding:9px 14px;
+  font-weight:700;font-size:13.5px;display:inline-flex;align-items:center;gap:7px;transition:.16s}
+.btn:hover{border-color:var(--green-l)}
+.btn svg{width:16px;height:16px}
+.btn.primary{background:var(--green);border-color:var(--green);color:#fff}
+.btn.primary:hover{background:var(--green-l);border-color:var(--green-l)}
+.btn.gold{background:linear-gradient(135deg,#d9b336,#b8901d);border:0;color:#1b1405}
+.btn.ghost{background:transparent}
+.btn.danger{background:transparent;border-color:#e0b6b1;color:var(--red)}
+.btn.danger:hover{background:rgba(192,57,43,.08)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.fab{position:fixed;inset-block-end:22px;inset-inline-end:22px;z-index:35;border:0;border-radius:50%;width:56px;height:56px;
+  background:linear-gradient(135deg,#d9b336,#b8901d);color:#1b1405;box-shadow:0 10px 26px rgba(184,144,29,.42);
+  display:grid;place-items:center;transition:transform .18s}
+.fab:hover{transform:scale(1.06)}
+.fab svg{width:24px;height:24px}
+
+/* ============ VIEW TRANSITIONS ============
+   Runs only when the view actually changes, never on a data refresh,
+   so live updates don't make the page jump about. */
+.page.enter > *{animation:view-rise .42s cubic-bezier(.2,.8,.2,1) both}
+.page.enter > *:nth-child(1){animation-delay:0ms}
+.page.enter > *:nth-child(2){animation-delay:55ms}
+.page.enter > *:nth-child(3){animation-delay:105ms}
+.page.enter > *:nth-child(4){animation-delay:150ms}
+.page.enter > *:nth-child(n+5){animation-delay:190ms}
+@keyframes view-rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* Cards inside a panel cascade in behind their header. */
+.page.enter .panel-b > .row{animation:row-in .34s ease both}
+.page.enter .panel-b > .row:nth-child(1){animation-delay:120ms}
+.page.enter .panel-b > .row:nth-child(2){animation-delay:160ms}
+.page.enter .panel-b > .row:nth-child(3){animation-delay:200ms}
+.page.enter .panel-b > .row:nth-child(n+4){animation-delay:235ms}
+@keyframes row-in{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+
+/* Mobile tab bar: the active icon lifts rather than just recolouring. */
+.tabbar a{transition:color .2s ease,transform .2s cubic-bezier(.2,.8,.2,1)}
+.tabbar a.on{transform:translateY(-2px)}
+.tabbar a svg{transition:transform .26s cubic-bezier(.2,.8,.2,1)}
+.tabbar a.on svg{transform:scale(1.12)}
+
+/* ============ CARDS / GRID ============ */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.grid{display:grid;gap:14px}
+.stats{grid-template-columns:repeat(auto-fit,minmax(168px,1fr));margin-bottom:16px}
+.stat{padding:15px 16px;position:relative;overflow:hidden}
+.stat .k{font-size:12px;font-weight:700;color:var(--text-2);display:flex;align-items:center;gap:6px}
+.stat .v{font-size:29px;font-weight:800;line-height:1.15;margin-top:5px;letter-spacing:-1px}
+.stat .m{font-size:11.5px;color:var(--text-3);margin-top:2px}
+.stat .bar{position:absolute;inset-block-start:0;inset-inline-start:0;width:4px;height:100%;background:var(--green)}
+.stat.warn .bar{background:var(--orange)} .stat.warn .v{color:var(--orange)}
+.stat.bad .bar{background:var(--red)} .stat.bad .v{color:var(--red)}
+.stat.gold .bar{background:var(--gold)}
+.cols{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;align-items:start}
+.panel{padding:0;overflow:hidden}
+.panel-h{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
+.panel-h h3{margin:0;font-size:15px;font-weight:800}
+.panel-h > svg{width:17px;height:17px;color:var(--text-2)}
+.panel-h .chip-sm{margin-inline-start:auto}
+.panel-b{padding:6px 8px 10px}
+.empty{text-align:center;padding:34px 20px;color:var(--text-2)}
+.empty svg{width:38px;height:38px;color:var(--text-3);margin-bottom:10px}
+.empty h4{margin:0 0 5px;font-size:14.5px;color:var(--text);font-weight:700}
+.empty p{margin:0 0 14px;font-size:13px}
+
+/* ============ ROWS ============ */
+.row{display:flex;gap:12px;align-items:flex-start;padding:11px 12px;border-radius:12px;text-align:start;width:100%;
+  background:transparent;border:0;border-inline-start:3px solid transparent;transition:background .15s}
+.row:hover{background:var(--surface-2)}
+.row .when{flex:none;width:60px;text-align:center;padding-top:2px}
+.row .when .d{font-size:17px;font-weight:800;line-height:1}
+.row .when .m{font-size:10.5px;color:var(--text-2);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.row .body{flex:1;min-width:0}
+.row .t{font-weight:700;font-size:14px;line-height:1.35;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .meta{font-size:12px;color:var(--text-2);display:flex;flex-wrap:wrap;gap:5px 10px;align-items:center}
+.row .meta span{display:inline-flex;align-items:center;gap:4px}
+.row .meta svg{width:12px;height:12px;opacity:.7}
+.row.od{border-inline-start-color:var(--red);background:rgba(192,57,43,.045)}
+.row.soon{border-inline-start-color:var(--orange)}
+
+/* ============ CHIPS ============ */
+.chip{display:inline-flex;align-items:center;gap:5px;border-radius:20px;padding:2px 9px;font-size:11.5px;font-weight:700;
+  border:1px solid transparent;white-space:nowrap}
+.chip .glyph{font-size:10px;line-height:1}
+.chip-sm{font-size:11px;padding:1px 8px}
+.c-slate{background:rgba(92,107,99,.12);color:var(--text-2);border-color:rgba(92,107,99,.25)}
+.c-blue{background:rgba(43,108,176,.12);color:#2b6cb0;border-color:rgba(43,108,176,.3)}
+.c-green{background:rgba(31,92,56,.12);color:var(--green);border-color:rgba(31,92,56,.28)}
+.c-gold{background:rgba(201,162,39,.16);color:#8a6d10;border-color:rgba(201,162,39,.4)}
+.c-orange{background:rgba(232,82,0,.12);color:var(--orange);border-color:rgba(232,82,0,.3)}
+.c-red{background:rgba(192,57,43,.12);color:var(--red);border-color:rgba(192,57,43,.3)}
+html[data-theme="dark"] .c-green{color:#7fc394} html[data-theme="dark"] .c-gold{color:#e0c25a}
+html[data-theme="dark"] .c-blue{color:#7fb0e0} html[data-theme="dark"] .c-red{color:#e78d83}
+html[data-theme="dark"] .c-orange{color:#ff9155}
+
+/* ============ FILTER BAR ============ */
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.sel{background:var(--input);border:1px solid var(--input-line);border-radius:10px;padding:8px 11px;font-size:13px;font-weight:600}
+.sel:focus{border-color:var(--green-l);outline:none;box-shadow:0 0 0 3px rgba(63,143,82,.14)}
+.seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:3px;gap:2px}
+.seg button{background:transparent;border:0;border-radius:8px;padding:6px 13px;font-size:13px;font-weight:700;color:var(--text-2)}
+.seg button.on{background:var(--surface);color:var(--green);box-shadow:var(--shadow)}
+html[data-theme="dark"] .seg button.on{color:#7fc394}
+
+/* ============ TABLE ============ */
+.tbl-wrap{overflow-x:auto;border-radius:var(--r)}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:start;font-size:11.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--text-2);
+  padding:11px 13px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--surface-2)}
+th button{background:none;border:0;font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit;padding:0;display:inline-flex;gap:4px;align-items:center}
+td{padding:11px 13px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr{cursor:pointer;transition:background .14s}
+tbody tr:hover{background:var(--surface-2)}
+tbody tr.od td:first-child{box-shadow:inset 3px 0 0 var(--red)}
+html[dir="rtl"] tbody tr.od td:first-child{box-shadow:inset -3px 0 0 var(--red)}
+td .ttl{font-weight:700}
+td .sub{font-size:11.5px;color:var(--text-3)}
+.prog{height:6px;background:var(--line);border-radius:6px;overflow:hidden;min-width:64px}
+.prog i{display:block;height:100%;background:var(--green);border-radius:6px}
+.avatar{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#3f8f52,#1F5C38);color:#fff;
+  display:inline-grid;place-items:center;font-size:10.5px;font-weight:800;flex:none}
+.who{display:flex;align-items:center;gap:7px;white-space:nowrap}
+
+/* ============ CALENDAR ============ */
+.cal-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.cal-head h3{margin:0;font-size:17px;font-weight:800;min-width:150px;text-align:center}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.cal .dow{background:var(--surface-2);padding:9px 6px;text-align:center;font-size:11.5px;font-weight:800;color:var(--text-2)}
+.cal .day{background:var(--surface);min-height:104px;padding:6px;position:relative}
+.cal .day.out{background:var(--surface-2);opacity:.55}
+.cal .day .n{font-size:12px;font-weight:700;color:var(--text-2);width:24px;height:24px;display:grid;place-items:center;border-radius:50%}
+.cal .day.today .n{background:var(--green);color:#fff}
+.cal .ev{display:block;width:100%;text-align:start;border:0;background:rgba(31,92,56,.1);color:var(--green);border-inline-start:3px solid var(--green);
+  border-radius:5px;padding:3px 6px;margin-top:3px;font-size:11px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html[data-theme="dark"] .cal .ev{color:#8fd0a4}
+.cal .ev.dl{background:rgba(232,82,0,.1);color:var(--orange);border-inline-start-color:var(--orange)}
+.cal .ev.done{opacity:.55;text-decoration:line-through}
+.cal .ev.canc{opacity:.45;text-decoration:line-through}
+
+/* ============ BOARD ============ */
+.board{display:grid;grid-template-columns:repeat(6,minmax(212px,1fr));gap:12px;overflow-x:auto;padding-bottom:8px}
+.col{background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r);padding:10px;min-height:180px}
+.col.over{border-color:var(--gold);background:rgba(201,162,39,.07)}
+.col h4{margin:0 0 10px;font-size:12.5px;font-weight:800;display:flex;align-items:center;gap:6px}
+.col h4 .n{margin-inline-start:auto;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:0 7px;font-size:11px}
+.kcard{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:10px;margin-bottom:8px;
+  box-shadow:var(--shadow);cursor:grab;text-align:start;width:100%;display:block}
+.kcard:active{cursor:grabbing}
+.kcard.drag{opacity:.4}
+.kcard .t{font-size:13px;font-weight:700;line-height:1.35;margin-bottom:6px}
+.kcard .f{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11.5px;color:var(--text-2)}
+
+/* ============ DRAWER ============ */
+.scrim{position:fixed;inset:0;background:rgba(12,20,15,.5);backdrop-filter:blur(2px);z-index:50;opacity:0;pointer-events:none;transition:opacity .25s}
+.scrim.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;inset-block:0;inset-inline-end:0;width:min(560px,100%);z-index:51;background:var(--bg);
+  border-inline-start:1px solid var(--line);box-shadow:var(--shadow-lg);display:flex;flex-direction:column;
+  transform:translateX(100%);transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+html[dir="rtl"] .drawer{transform:translateX(-100%)}
+.drawer.on{transform:none !important}
+.dr-h{padding:16px 18px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:flex-start;background:var(--surface)}
+.dr-h h2{margin:0;font-size:18px;font-weight:800;line-height:1.3}
+.dr-h .sub{font-size:12.5px;color:var(--text-2);margin-top:4px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.dr-h .x{margin-inline-start:auto;flex:none}
+.dr-b{flex:1;overflow-y:auto;padding:16px 18px 90px}
+.dr-f{position:absolute;inset-block-end:0;inset-inline:0;padding:12px 18px;border-top:1px solid var(--line);
+  background:var(--surface);display:flex;gap:8px;flex-wrap:wrap}
+.sec{margin-bottom:20px}
+.sec h4{margin:0 0 9px;font-size:12px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--text-2);
+  display:flex;align-items:center;gap:7px}
+.sec h4::after{content:"";flex:1;height:1px;background:var(--line)}
+.sec h4 > svg{width:14px;height:14px}
+.kv{display:grid;grid-template-columns:118px 1fr;gap:7px 12px;font-size:13.5px}
+.kv dt{color:var(--text-2);font-weight:600}
+.kv dd{margin:0;font-weight:600}
+.agenda{list-style:none;margin:0;padding:0;counter-reset:ag}
+.agenda li{counter-increment:ag;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:10px 12px;margin-bottom:7px;position:relative;padding-inline-start:40px}
+.agenda li::before{content:counter(ag);position:absolute;inset-inline-start:11px;top:10px;width:20px;height:20px;border-radius:6px;
+  background:rgba(201,162,39,.18);color:#8a6d10;font-size:11px;font-weight:800;display:grid;place-items:center}
+html[data-theme="dark"] .agenda li::before{color:#e0c25a}
+.agenda li .tp{font-weight:700;font-size:13.5px}
+.agenda li .nt{font-size:12.5px;color:var(--text-2);margin-top:3px;white-space:pre-wrap}
+.note{background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:11px 12px;font-size:13.5px;white-space:pre-wrap}
+.people{display:flex;flex-wrap:wrap;gap:7px}
+.person{display:inline-flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:4px 11px 4px 4px;font-size:12.5px;font-weight:600}
+html[dir="rtl"] .person{padding:4px 4px 4px 11px}
+.tl{position:relative;padding-inline-start:20px}
+.tl::before{content:"";position:absolute;inset-inline-start:5px;top:5px;bottom:5px;width:2px;background:var(--line)}
+.tl-i{position:relative;padding-bottom:13px}
+.tl-i::before{content:"";position:absolute;inset-inline-start:-19px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--green);border:2px solid var(--bg)}
+.tl-i .a{font-size:13px;font-weight:700}
+.tl-i .d{font-size:12px;color:var(--text-2)}
+.tl-i .t{font-size:11px;color:var(--text-3);margin-top:1px}
+
+/* ============ MODAL / FORM ============ */
+.modal{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:16px;overflow-y:auto}
+.mbox{background:var(--bg);border:1px solid var(--line);border-radius:var(--r-lg);width:min(680px,100%);
+  box-shadow:var(--shadow-lg);max-height:92vh;display:flex;flex-direction:column;animation:pop .26s cubic-bezier(.2,.8,.2,1) both}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+.mbox header{padding:15px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;background:var(--surface);border-radius:var(--r-lg) var(--r-lg) 0 0}
+.mbox header h3{margin:0;font-size:16.5px;font-weight:800}
+.mbox .mb{padding:16px 18px;overflow-y:auto;flex:1}
+.mbox footer{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;background:var(--surface);border-radius:0 0 var(--r-lg) var(--r-lg)}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg{margin-bottom:12px}
+.fg.full{grid-column:1/-1}
+.fg label{display:block;font-size:12.5px;font-weight:700;color:var(--text-2);margin-bottom:5px}
+.fg label .req{color:var(--orange)}
+.fg input,.fg select,.fg textarea{width:100%;background:var(--input);border:1px solid var(--input-line);border-radius:11px;padding:10px 12px;transition:border-color .16s,box-shadow .16s}
+.fg textarea{resize:vertical;min-height:74px;line-height:1.6}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--green-l);box-shadow:0 0 0 3px rgba(63,143,82,.15);outline:none}
+.fg .hint{font-size:11.5px;color:var(--text-3);margin-top:4px}
+.err{color:var(--red);font-size:12.5px;font-weight:700;margin-top:5px;display:flex;gap:5px;align-items:center}
+.rep-row{display:flex;gap:8px;align-items:flex-start;margin-bottom:8px}
+.rep-row .h{flex:none;width:26px;height:38px;display:grid;place-items:center;color:var(--text-3);font-weight:800;font-size:12px}
+.rep-row input,.rep-row select{flex:1}
+.rep-row .del{flex:none;background:transparent;border:1px solid var(--line);border-radius:9px;padding:9px;color:var(--text-3)}
+.rep-row .del:hover{color:var(--red);border-color:#e0b6b1}
+.checks{display:flex;flex-wrap:wrap;gap:7px}
+.check{display:inline-flex;align-items:center;gap:7px;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:6px 12px;font-size:12.5px;font-weight:600;cursor:pointer}
+.check input{width:15px;height:15px;accent-color:var(--green);margin:0}
+.check.on{background:rgba(31,92,56,.1);border-color:var(--green)}
+
+/* ============ NOTIFICATIONS / TOAST ============ */
+.pop{position:fixed;inset-block-start:62px;inset-inline-end:18px;z-index:55;width:min(370px,calc(100vw - 24px));
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow-lg);overflow:hidden;
+  animation:pop .2s ease both}
+.pop h4{margin:0;padding:13px 15px;font-size:14px;font-weight:800;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+.pop h4 button{margin-inline-start:auto;background:none;border:0;font-size:12px;font-weight:700;color:var(--green);padding:0}
+.pop h4 > svg{width:16px;height:16px;color:var(--text-2)}
+.pop .list{max-height:min(430px,60vh);overflow-y:auto}
+.nrow{display:flex;gap:10px;padding:11px 15px;border-bottom:1px solid var(--line);align-items:flex-start;width:100%;background:transparent;border-inline:0;border-top:0;text-align:start}
+.nrow:hover{background:var(--surface-2)}
+.nrow.un{background:rgba(201,162,39,.06)}
+.nrow .ic{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;flex:none}
+.nrow .ic svg{width:15px;height:15px}
+.nrow .t{font-size:13px;font-weight:700;line-height:1.35}
+.nrow .d{font-size:12px;color:var(--text-2);margin-top:2px}
+.nrow .w{font-size:11px;color:var(--text-3);margin-top:3px}
+#toasts{position:fixed;inset-block-end:18px;inset-inline-start:18px;z-index:70;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--surface);border:1px solid var(--line);border-inline-start:4px solid var(--green);border-radius:12px;
+  padding:11px 15px;box-shadow:var(--shadow-lg);font-size:13.5px;font-weight:600;max-width:340px;animation:slide .28s cubic-bezier(.2,.8,.2,1) both}
+.toast.bad{border-inline-start-color:var(--red)}
+.toast.warn{border-inline-start-color:var(--orange)}
+@keyframes slide{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* ============ MOBILE ============ */
+.tabbar{display:none;position:fixed;inset-block-end:0;inset-inline:0;z-index:38;background:var(--surface);
+  border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom));justify-content:space-around}
+.tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;text-decoration:none;color:var(--text-3);
+  font-size:10.5px;font-weight:700;padding:6px 2px;border-radius:10px}
+.tabbar a svg{width:20px;height:20px}
+.tabbar a.on{color:var(--green)}
+html[data-theme="dark"] .tabbar a.on{color:#7fc394}
+@media (max-width:1080px){.cols{grid-template-columns:1fr}}
+@media (max-width:900px){
+  .side{transform:translateX(-100%);transition:transform .28s}
+  html[dir="rtl"] .side{transform:translateX(100%)}
+  .side.on{transform:none !important}
+  .main{margin-inline-start:0}
+  .burger{display:grid}
+  .tabbar{display:flex}
+  .page{padding:16px 14px 84px}
+  .fab{inset-block-end:78px}
+  .board{grid-template-columns:repeat(6,minmax(190px,1fr))}
+  .fgrid{grid-template-columns:1fr}
+  .kv{grid-template-columns:100px 1fr}
+  .page-head h1{font-size:20px}
+  .stat .v{font-size:25px}
+}
+
+/* ============ WEEK VIEW ============ */
+.week{display:grid;grid-template-columns:56px repeat(7,1fr);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--surface)}
+.week .wh{background:var(--surface-2);padding:8px 4px;text-align:center;font-size:11.5px;font-weight:800;color:var(--text-2);border-bottom:1px solid var(--line)}
+.week .wh.today{color:var(--green);background:rgba(31,92,56,.1)}
+html[data-theme="dark"] .week .wh.today{color:#7fc394}
+.week .wh small{display:block;font-size:15px;font-weight:800;color:var(--text)}
+.week .gut{border-inline-end:1px solid var(--line);background:var(--surface-2)}
+.week .hr{height:46px;border-bottom:1px dashed var(--line);font-size:10.5px;color:var(--text-3);padding:2px 5px;text-align:end}
+.wcol{position:relative;border-inline-end:1px solid var(--line)}
+.wcol .slot{height:46px;border-bottom:1px dashed var(--line)}
+.wev{position:absolute;inset-inline:3px;border-radius:8px;padding:3px 6px;font-size:11px;font-weight:700;overflow:hidden;
+  background:rgba(31,92,56,.14);color:var(--green);border-inline-start:3px solid var(--green);text-align:start;cursor:pointer}
+html[data-theme="dark"] .wev{color:#8fd0a4}
+.wev.k-external{background:rgba(232,82,0,.13);color:var(--orange);border-inline-start-color:var(--orange)}
+.wev.k-online{background:rgba(43,108,176,.13);color:#2b6cb0;border-inline-start-color:#2b6cb0}
+.wev.k-visit{background:rgba(201,162,39,.16);color:#8a6d10;border-inline-start-color:var(--gold)}
+html[data-theme="dark"] .wev.k-online{color:#7fb0e0} html[data-theme="dark"] .wev.k-visit{color:#e0c25a}
+.wev.canc{opacity:.45;text-decoration:line-through}
+.wev small{display:block;font-weight:600;opacity:.85}
+
+/* ============ CONFLICT + CALLOUTS ============ */
+.callout{display:flex;gap:9px;align-items:flex-start;border-radius:12px;padding:10px 12px;font-size:12.5px;font-weight:600;line-height:1.6}
+.callout svg{width:16px;height:16px;flex:none;margin-top:2px}
+.callout.warn{background:rgba(232,82,0,.1);border:1px solid rgba(232,82,0,.3);color:var(--orange)}
+.callout.info{background:rgba(43,108,176,.09);border:1px solid rgba(43,108,176,.25);color:#2b6cb0}
+html[data-theme="dark"] .callout.info{color:#7fb0e0}
+.fu{display:flex;gap:9px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:9px 11px;margin-bottom:7px}
+.fu .bx{width:16px;height:16px;border:2px solid var(--text-3);border-radius:4px;flex:none;margin-top:2px}
+.fu .tx{flex:1;font-size:13.5px;font-weight:600}
+.fu .mt{font-size:11.5px;color:var(--text-2);margin-top:2px;display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+.fu .mt svg{width:12px;height:12px;opacity:.7}
+
+/* ============ INSTALLED (standalone) ============ */
+@media (display-mode: standalone){
+  .topbar{padding-top:calc(12px + env(safe-area-inset-top))}
+  .side-top{padding-top:calc(18px + env(safe-area-inset-top))}
+  #login{padding-top:calc(22px + env(safe-area-inset-top))}
+  .drawer{padding-top:env(safe-area-inset-top)}
+}
+.live-pill{display:none;align-items:center;gap:7px;background:rgba(31,92,56,.1);border:1px solid rgba(31,92,56,.28);
+  color:var(--green);border-radius:20px;padding:5px 11px;font-size:12px;font-weight:700;white-space:nowrap}
+.live-pill.on{display:inline-flex}
+html[data-theme="dark"] .live-pill{color:#7fc394;background:rgba(63,143,82,.14);border-color:rgba(63,143,82,.35)}
+.live-pill i{width:7px;height:7px;border-radius:50%;background:currentColor;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.35;transform:scale(.8)}}
+@media (max-width:640px){.live-pill span{display:none}.live-pill{padding:7px}}
+.net-pill{display:none;align-items:center;gap:6px;background:rgba(232,82,0,.12);border:1px solid rgba(232,82,0,.35);
+  color:var(--orange);border-radius:20px;padding:5px 11px;font-size:12px;font-weight:700;white-space:nowrap}
+.net-pill.on{display:inline-flex}
+.net-pill svg{width:13px;height:13px}
+@media (max-width:640px){.net-pill span{display:none}}
+
+@media print{.side,.topbar,.fab,.tabbar,.dr-f{display:none}.main{margin:0}}
+</style>
+</head>
+<body>
+
+<!-- ================= BOOT SPLASH ================= -->
+<div id="boot">
+  <div class="boot-in">
+    <svg viewBox="0 0 120 80" aria-hidden="true">
+      <g class="p1"><circle cx="30" cy="26" r="9" fill="#C9A227"/><path d="M14 62c0-9 7-16 16-16s16 7 16 16z" fill="#C9A227"/></g>
+      <g class="p2"><circle cx="60" cy="20" r="10" fill="#ffffff"/><path d="M42 60c0-10 8-18 18-18s18 8 18 18z" fill="#ffffff"/></g>
+      <g class="p3"><circle cx="90" cy="26" r="9" fill="#3f8f52"/><path d="M74 62c0-9 7-16 16-16s16 7 16 16z" fill="#3f8f52"/></g>
+    </svg>
+    <div class="boot-bar"><i></i></div>
+  </div>
+</div>
+
+<!-- ================= LOGIN ================= -->
+<div id="login" class="hidden">
+  <div class="login-card">
+    <div class="logo" aria-hidden="true">
+      <svg viewBox="0 0 120 80">
+        <g class="p1"><circle cx="30" cy="26" r="9" fill="#C9A227"/><path d="M14 62c0-9 7-16 16-16s16 7 16 16z" fill="#C9A227"/></g>
+        <g class="p2"><circle cx="60" cy="20" r="10" fill="#ffffff"/><path d="M42 60c0-10 8-18 18-18s18 8 18 18z" fill="#ffffff"/></g>
+        <g class="p3"><circle cx="90" cy="26" r="9" fill="#3f8f52"/><path d="M74 62c0-9 7-16 16-16s16 7 16 16z" fill="#3f8f52"/></g>
+      </svg>
+    </div>
+    <h1 id="lg-title">مدير الاجتماعات والمواعيد</h1>
+    <p class="sub" id="lg-sub">جمعية أصدقاء السعودية · نظام داخلي</p>
+    <div id="lg-form">
+      <div class="field"><label id="lg-email-l">البريد الإلكتروني</label><input type="email" id="lg-email" autocomplete="username" placeholder="name@saudifriendship.org"></div>
+      <div class="field"><label id="lg-pass-l">كلمة المرور</label><input type="password" id="lg-pass" autocomplete="current-password" placeholder="••••••••"></div>
+      <button class="btn-gold" id="lg-go">تسجيل الدخول</button>
+      <div id="lg-err" class="err hidden" style="justify-content:center"></div>
+      <button id="lg-check" class="lg-link hidden" data-act="check-conn">فحص الاتصال</button>
+    </div>
+    <div class="login-foot"><span id="lg-mode">قاعدة البيانات: <b>وضع تجريبي</b></span>
+      <span id="lg-hint" class="hidden"></span></div>
+    <div class="lg-tools">
+      <button class="lg-tool" id="lg-lang">EN</button>
+      <button class="lg-tool" id="lg-theme" aria-label="theme"><svg id="lg-theme-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg></button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="app">
+  <aside class="side" id="side">
+    <div class="side-top">
+      <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="#C9A227" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 11h18"/></svg></div>
+      <div><h2 id="side-name">الاجتماعات والمواعيد</h2><span id="side-org">جمعية أصدقاء السعودية</span></div>
+    </div>
+    <nav class="nav" id="nav"></nav>
+    <div class="side-bot">
+      <div class="me">
+        <div class="av" id="me-av">؟</div>
+        <div style="min-width:0"><div class="nm" id="me-name">—</div><div class="rl" id="me-role">—</div></div>
+        <button id="me-out" title="خروج"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg></button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="burger icon-btn" id="burger" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+        <input id="q" type="search" placeholder="بحث…" aria-label="Search">
+      </div>
+      <div class="tb-actions">
+        <span class="live-pill" id="live-pill"><i></i><span>مباشر</span></span>
+        <span class="net-pill" id="net-pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1 1l22 22M16.7 16.7A9 9 0 015 5.3M12 20h.01"/></svg><span id="net-txt">دون اتصال</span></span>
+        <button class="icon-btn" id="bell" aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg><span class="dot hidden" id="bell-n">0</span></button>
+        <button class="icon-btn" id="theme" aria-label="Theme"><svg id="theme-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg></button>
+        <button class="icon-btn lang-btn" id="lang">EN</button>
+      </div>
+    </header>
+    <main class="page" id="page"></main>
+  </div>
+
+  <button class="fab" id="fab" aria-label="Add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
+  <nav class="tabbar" id="tabbar"></nav>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true"></aside>
+<div id="modal-host"></div>
+<div id="pop-host"></div>
+<div id="toasts" aria-live="polite"></div>
+<script>
+/* =========================================================================
+   Meetings & Appointments Manager — Saudi Friends Association (SFC)
+   Scope: meetings, appointments and their minutes. Task tracking lives in
+   the separate SFC Tasks system; follow-ups here are minutes only.
+   ========================================================================= */
+
+/* ---------- 1. Supabase configuration (optional) ---------- */
+const SUPA = {
+  url:     'https://mmrtgsyqnvgsqzfsjxab.supabase.co',
+  anonKey: 'sb_publishable_q9iTFG3vGaNWbLS3aHNAhA_YRWFVVQO'
+};
+const TABLES = ['users','programs','meetings','agenda_items','meeting_attendees','follow_ups','activity_log'];
+
+/* Credentials can be corrected on the device without re-editing this file. */
+const CONN = {
+  KEY:'sfc-meetings-conn',
+  get(){
+    try{ const r=localStorage.getItem(this.KEY);
+      if(r){ const p=JSON.parse(r); if(p&&p.url&&p.key) return {url:p.url,key:p.key,override:true}; } }catch(e){}
+    return {url:SUPA.url,key:SUPA.anonKey,override:false};
+  },
+  set(url,key){ try{ localStorage.setItem(this.KEY,JSON.stringify({url:url.trim().replace(/\/+$/,''),key:key.trim()})); return true; }catch(e){ return false; } },
+  clear(){ try{ localStorage.removeItem(this.KEY); }catch(e){} }
+};
+
+/* ---------- 2. Helpers ---------- */
+const $  = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>[...r.querySelectorAll(s)];
+const uid = ()=> 'id-'+Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-4);
+const esc = s => String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nowISO = ()=> new Date().toISOString();
+const MS_DAY = 86400000;
+
+function dayAt(offset,h=9,m=0){ const d=new Date(); d.setDate(d.getDate()+offset); d.setHours(h,m,0,0); return d.toISOString(); }
+function startOfDay(d){ const x=new Date(d); x.setHours(0,0,0,0); return x; }
+function startOfWeek(d){ const x=startOfDay(d); x.setDate(x.getDate()-x.getDay()); return x; }   // week starts Sunday
+function sameDay(a,b){ a=new Date(a);b=new Date(b); return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate(); }
+function daysBetween(a,b){ return Math.round((startOfDay(b)-startOfDay(a))/MS_DAY); }
+function addDays(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+
+/* Dates always display dd/mm/yy — SFC standard */
+function fmtDate(iso){ if(!iso) return '—'; const d=new Date(iso); const p=n=>String(n).padStart(2,'0');
+  return `${p(d.getDate())}/${p(d.getMonth()+1)}/${String(d.getFullYear()).slice(-2)}`; }
+function fmtTime(iso){ if(!iso) return ''; const d=new Date(iso); const p=n=>String(n).padStart(2,'0');
+  let h=d.getHours(); const am=h>=12; h=h%12||12; return `${p(h)}:${p(d.getMinutes())} ${am?t('pm'):t('am')}`; }
+function fmtDT(iso){ return iso ? fmtDate(iso)+' · '+fmtTime(iso) : '—'; }
+function fmtRange(m){ return fmtTime(m.start_at) + (m.end_at?' – '+fmtTime(m.end_at):''); }
+function duration(m){ if(!m.end_at) return ''; const mins=Math.round((new Date(m.end_at)-new Date(m.start_at))/60000);
+  const h=Math.floor(mins/60), mm=mins%60; return (h?h+t('hShort'):'')+(mm?' '+mm+t('mShort'):''); }
+function toLocalInput(iso){ if(!iso) return ''; const d=new Date(iso); const p=n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; }
+function fromLocalInput(v){ return v ? new Date(v).toISOString() : null; }
+function relative(iso){ if(!iso) return '';
+  const n = daysBetween(new Date(), iso);
+  if(n===0) return t('today'); if(n===1) return t('tomorrow'); if(n===-1) return t('yesterday');
+  return n>0 ? t('inDays').replace('{n}',n) : t('agoDays').replace('{n}',Math.abs(n)); }
+function initials(name){ return String(name||'?').trim().split(/\s+/).slice(0,2).map(w=>w[0]).join('').toUpperCase(); }
+function monthName(y,mo){ return new Date(y,mo,1).toLocaleDateString(LANG==='ar'?'ar-SA-u-nu-latn':'en-GB',{month:'long',year:'numeric'}); }
+function shortMonth(iso){ return new Date(iso).toLocaleDateString(LANG==='ar'?'ar-SA-u-nu-latn':'en-GB',{month:'short'}); }
+
+/* ---------- 3. Translations ---------- */
+const T = {
+ar:{
+  appName:'مدير الاجتماعات والمواعيد', org:'جمعية أصدقاء السعودية', sideName:'الاجتماعات والمواعيد',
+  signIn:'تسجيل الدخول', email:'البريد الإلكتروني', password:'كلمة المرور',
+  demoHint:'وضع تجريبي: أدخل بريد أحد الأعضاء وأي كلمة مرور.', dbMode:'قاعدة البيانات:', modeDemo:'وضع تجريبي', modeLive:'متصل بـ Supabase',
+  badLogin:'البريد أو كلمة المرور غير صحيحة',
+  noProfile:'لا يوجد حساب مرتبط بهذا البريد في الجمعية — راجع مدير النظام.',
+  inactive:'هذا الحساب موقوف — راجع مدير النظام.',
+  connErr:'تعذّر الاتصال بقاعدة البيانات. تحقق من الاتصال ثم أعد المحاولة.',
+  libErr:'تعذّر تحميل مكتبة Supabase. تحقق من الاتصال بالإنترنت أو من مانع الإعلانات، ثم أعد تحميل الصفحة.',
+  authErr:'تعذّر التحقق من الحساب.', readErr:'تم الدخول، لكن تعذّرت قراءة البيانات من قاعدة البيانات.',
+  details:'التفاصيل:', retry:'إعادة المحاولة',
+  checkConn:'فحص الاتصال', connCheck:'فحص الاتصال بقاعدة البيانات', running:'جارٍ الفحص…',
+  cUrl:'صيغة الرابط', cReach:'الوصول إلى الخادم', cKey:'قبول المفتاح', cTables:'وجود الجداول', cLib:'تحميل المكتبة',
+  cOkUrl:'الرابط بصيغة صحيحة', cBadUrl:'الرابط غير صالح — يجب أن يكون بصيغة https://xxxx.supabase.co',
+  cOkReach:'الخادم يستجيب', cBadReach:'لا يمكن الوصول إلى هذا الرابط — تحقق من معرّف المشروع أو من اتصالك',
+  cOkKey:'المفتاح مقبول', cBadKey:'المفتاح مرفوض — انسخ المفتاح العام من Project Settings ← API',
+  cOkTables:'الجداول موجودة', cBadTables:'الجداول غير موجودة — شغّل ملف schema.sql في المشروع',
+  cOkLib:'تم تحميل المكتبة', cBadLib:'تعذّر تحميل المكتبة من الإنترنت',
+  connSettings:'إعدادات الاتصال', projUrl:'رابط المشروع', apiKey:'المفتاح العام', saveConn:'حفظ وإعادة التحميل',
+  connSaved:'حُفظت الإعدادات — يعاد التحميل الآن', usingOverride:'يستخدم إعدادات اتصال محفوظة على هذا الجهاز',
+  signingIn:'جارٍ الدخول…', rowsVisible:'صف مقروء في جدول الأعضاء', signedInAs:'دخلت بالبريد', firstRun:'لا توجد بيانات بعد — ابدأ بإضافة أول موعد.', signOut:'تسجيل الخروج', search:'بحث…', am:'ص', pm:'م', hShort:'س', mShort:'د',
+  navMain:'الجدول', navRecords:'السجلات', navAdmin:'الإدارة',
+  dashboard:'اليوم', calendar:'التقويم', meetings:'كل الاجتماعات', mine:'اجتماعاتي',
+  programs:'البرامج', activity:'سجل التغييرات', settings:'الإعدادات', minutes:'المحاضر',
+  dashSub:'مواعيدك القادمة وما يحتاج إلى محضر.',
+  todayList:'مواعيد اليوم', next7:'الأيام السبعة القادمة', needMinutes:'بانتظار المحضر',
+  needMinutesHint:'اجتماعات انتهت ولم يُسجَّل محضرها بعد',
+  statToday:'اليوم', statWeek:'هذا الأسبوع', statNeed:'بانتظار محضر', statHours:'ساعات الاجتماعات',
+  statHoursHint:'خلال الأيام السبعة القادمة', statConflicts:'تعارضات',
+  addMeeting:'موعد جديد', newMeeting:'موعد جديد', editMeeting:'تعديل الموعد', addProgram:'برنامج جديد',
+  noMeetingsToday:'لا مواعيد اليوم', freeDay:'يومك خالٍ — وقت جيد للعمل العميق.',
+  /* fields */
+  title:'العنوان', kind:'النوع', date:'التاريخ', time:'الوقت', status:'الحالة', room:'القاعة',
+  location:'المكان أو الرابط', program:'البرنامج', client:'الجهة', description:'الغرض من الاجتماع',
+  agenda:'محاور النقاش', notes:'الملاحظات', decisions:'القرارات', followUps:'التزامات المتابعة',
+  attendees:'الحضور', guests:'ضيوف من خارج الجمعية', createdBy:'أنشأه', history:'سجل التغييرات',
+  startTime:'وقت البدء', endTime:'وقت الانتهاء', durationL:'المدة', organizer:'المنظّم',
+  repeat:'التكرار', repeatCount:'عدد المرات', series:'ضمن سلسلة متكررة',
+  owner:'المسؤول', dueDate:'التاريخ المستهدف',
+  /* actions */
+  save:'حفظ', cancel:'إلغاء', edit:'تعديل', delete:'حذف', close:'إغلاق', reset:'إعادة تعيين',
+  all:'الكل', none:'بدون', optional:'اختياري', today:'اليوم', tomorrow:'غداً', yesterday:'أمس',
+  inDays:'خلال {n} يوم', agoDays:'منذ {n} يوم', results:'نتيجة', showing:'عرض', noneYet:'لا شيء هنا بعد',
+  writeMinutes:'كتابة المحضر', markHeld:'تم عقده', addTopic:'إضافة محور', addFollowUp:'إضافة التزام',
+  copyFollowUps:'نسخ الالتزامات', copied:'نُسخت — الصقها في نظام المهام',
+  month:'شهر', week:'أسبوع', list:'قائمة', print:'طباعة',
+  /* enums */
+  internal:'اجتماع داخلي', external:'موعد خارجي', online:'اجتماع عن بعد', visit:'زيارة أو جولة',
+  scheduled:'مجدول', held:'عُقد', cancelled:'ملغى', postponed:'مؤجل',
+  invited:'مدعو', attended:'حضر', declined:'اعتذر', tentative:'غير مؤكد',
+  active:'نشط', on_hold:'معلّق', completed:'مكتمل', archived:'مؤرشف',
+  manager:'مدير النظام', member:'عضو فريق', admin:'مسؤول',
+  none_:'بدون تكرار', weekly:'أسبوعياً', biweekly:'كل أسبوعين', monthly:'شهرياً',
+  /* validation + conflicts */
+  errTitle:'العنوان مطلوب', errStart:'تاريخ ووقت البدء مطلوب', errEnd:'وقت الانتهاء لا يمكن أن يسبق وقت البدء',
+  conflictRoom:'القاعة محجوزة في هذا الوقت: {x}', conflictPerson:'{p} لديه موعد آخر في هذا الوقت: {x}',
+  conflictsFound:'تعارض في الجدول', saveAnyway:'حفظ رغم التعارض', reviewConflicts:'مراجعة التعارض',
+  confirmDelete:'تأكيد الحذف', confirmDeleteMsg:'سيتم حذف «{x}» نهائياً. لا يمكن التراجع عن هذا الإجراء.',
+  deleteSeries:'حذف كل مواعيد السلسلة', deleteOne:'حذف هذا الموعد فقط',
+  /* empties */
+  emptyMeetings:'لا توجد مواعيد بعد', emptyMeetingsMsg:'ابدأ بإضافة أول موعد مع محاور النقاش والحضور.',
+  emptyMine:'لا مواعيد مسجلة باسمك', emptyMineMsg:'المواعيد التي تُدعى إليها ستظهر هنا.',
+  emptyActivity:'لا تغييرات بعد', emptySearch:'لا نتائج مطابقة', emptySearchMsg:'جرّب كلمة أخرى أو أزل بعض عوامل التصفية.',
+  emptyNotif:'لا إشعارات', emptyMinutes:'لم يُسجَّل محضر لهذا الاجتماع بعد',
+  /* notifications */
+  notifications:'الإشعارات', markAllRead:'تعليم الكل كمقروء',
+  nSoon:'خلال ٢٤ ساعة', nNow:'خلال ساعة', nNeedMinutes:'انتهى دون محضر', nChanged:'تغيّر موعده',
+  /* settings */
+  myProfile:'ملفي الشخصي', editName:'تعديل الاسم', nameAr:'الاسم (عربي)', nameEn:'الاسم (إنجليزي)',
+  welcomeTitle:'أهلاً بك', welcomeMsg:'اكتب اسمك كما تريد أن يظهر لبقية الفريق.', nameHint:'يظهر هذا الاسم في الحضور والمحاضر بدل بريدك.',
+  savedName:'تم تحديث الاسم', notYou:'يمكنك تعديل اسمك أنت فقط',
+  team:'أعضاء الفريق', role:'الدور', addUser:'إضافة عضو', notifPrefs:'تفضيلات الإشعارات',
+  prefReminder:'تذكيرات المواعيد', prefMinutes:'تنبيه المحاضر المتأخرة', prefChanges:'تغييرات الجدول',
+  orgDefaults:'إعدادات المنظمة', tz:'المنطقة الزمنية', language:'اللغة', theme:'المظهر', dark:'داكن', light:'فاتح',
+  dataMode:'مصدر البيانات', rooms:'القاعات', active_:'نشط', defaultDur:'المدة الافتراضية',
+  tasksNote:'تتبّع المهام يتم في نظام مهام الجمعية — هنا تُسجَّل الالتزامات ضمن المحضر فقط.',
+  /* activity verbs */
+  aCreated:'أنشأ', aTime:'غيّر الموعد', aStatus:'غيّر الحالة', aMinutes:'سجّل المحضر',
+  aAttendees:'عدّل الحضور', aEdited:'عدّل', aDeleted:'حذف',
+  savedOk:'تم الحفظ', deletedOk:'تم الحذف', searchResults:'نتائج البحث عن «{q}»',
+  live:'مباشر', liveOff:'غير متزامن', liveOn:'التحديثات تصل مباشرة من بقية الأجهزة',
+  syncing:'جارٍ التحديث…', deletedElsewhere:'حُذف هذا الموعد من جهاز آخر',
+  appSection:'التطبيق', install:'تثبيت التطبيق', installed:'التطبيق مثبّت على هذا الجهاز',
+  installHint:'ثبّته ليعمل دون اتصال وليظهر كأي تطبيق على جهازك.',
+  installIOS:'على الآيفون: من سفاري اضغط زر المشاركة ثم «إضافة إلى الشاشة الرئيسية».',
+  offline:'دون اتصال', onlineL:'متصل', offlineNote:'أنت تعمل دون اتصال — التغييرات محفوظة على هذا الجهاز.',
+  updateReady:'يتوفر تحديث للتطبيق', reload:'إعادة التحميل',
+  storage:'مكان حفظ البيانات', storageLocal:'هذا الجهاز', storageCloud:'Supabase (سحابي)',
+  resetData:'إعادة تعيين البيانات التجريبية', resetMsg:'سيتم حذف كل ما أضفته على هذا الجهاز والعودة إلى البيانات التجريبية الأصلية.'
+},
+en:{
+  appName:'Meetings & Appointments Manager', org:'Saudi Friends Association', sideName:'Meetings & Appointments',
+  signIn:'Sign in', email:'Email', password:'Password',
+  demoHint:'Demo mode: enter any member email and any password.', dbMode:'Database:', modeDemo:'Demo mode', modeLive:'Connected to Supabase',
+  badLogin:'Email or password is incorrect',
+  noProfile:'No association account is linked to that email — contact your administrator.',
+  inactive:'That account is inactive — contact your administrator.',
+  connErr:'Could not reach the database. Check your connection and try again.',
+  libErr:'Could not load the Supabase library. Check your internet connection or ad blocker, then reload.',
+  authErr:'Could not verify the account.', readErr:'Signed in, but could not read from the database.',
+  details:'Details:', retry:'Try again',
+  checkConn:'Check connection', connCheck:'Database connection check', running:'Checking…',
+  cUrl:'URL format', cReach:'Server reachable', cKey:'Key accepted', cTables:'Tables present', cLib:'Library loaded',
+  cOkUrl:'URL looks right', cBadUrl:'Not a valid URL — it should look like https://xxxx.supabase.co',
+  cOkReach:'Server responded', cBadReach:'Could not reach that URL — check the project ref or your connection',
+  cOkKey:'Key accepted', cBadKey:'Key rejected — copy the publishable key from Project Settings → API',
+  cOkTables:'Tables found', cBadTables:'Tables missing — run schema.sql in this project',
+  cOkLib:'Library loaded', cBadLib:'Could not load the library from the internet',
+  connSettings:'Connection settings', projUrl:'Project URL', apiKey:'Publishable key', saveConn:'Save and reload',
+  connSaved:'Saved — reloading', usingOverride:'Using connection settings saved on this device',
+  signingIn:'Signing in…', rowsVisible:'user rows readable', signedInAs:'signed in as', firstRun:'Nothing here yet — add your first appointment.', signOut:'Sign out', search:'Search…', am:'AM', pm:'PM', hShort:'h', mShort:'m',
+  navMain:'Schedule', navRecords:'Records', navAdmin:'Admin',
+  dashboard:'Today', calendar:'Calendar', meetings:'All meetings', mine:'My meetings',
+  programs:'Programmes', activity:'Change log', settings:'Settings', minutes:'Minutes',
+  dashSub:'What’s coming up, and what still needs minutes.',
+  todayList:'Today’s schedule', next7:'Next seven days', needMinutes:'Waiting on minutes',
+  needMinutesHint:'Meetings that have ended with no minutes recorded',
+  statToday:'Today', statWeek:'This week', statNeed:'Need minutes', statHours:'Hours in meetings',
+  statHoursHint:'Over the next seven days', statConflicts:'Clashes',
+  addMeeting:'New appointment', newMeeting:'New appointment', editMeeting:'Edit appointment', addProgram:'New programme',
+  noMeetingsToday:'Nothing scheduled today', freeDay:'Your day is clear — good time for deep work.',
+  title:'Title', kind:'Type', date:'Date', time:'Time', status:'Status', room:'Room',
+  location:'Location or link', program:'Programme', client:'Organisation', description:'Purpose',
+  agenda:'Discussion topics', notes:'Notes', decisions:'Decisions', followUps:'Follow-up commitments',
+  attendees:'Attendees', guests:'External guests', createdBy:'Created by', history:'Change history',
+  startTime:'Start', endTime:'End', durationL:'Duration', organizer:'Organiser',
+  repeat:'Repeats', repeatCount:'Occurrences', series:'Part of a repeating series',
+  owner:'Owner', dueDate:'Target date',
+  save:'Save', cancel:'Cancel', edit:'Edit', delete:'Delete', close:'Close', reset:'Reset',
+  all:'All', none:'None', optional:'optional', today:'Today', tomorrow:'Tomorrow', yesterday:'Yesterday',
+  inDays:'in {n} days', agoDays:'{n} days ago', results:'results', showing:'Showing', noneYet:'Nothing here yet',
+  writeMinutes:'Write minutes', markHeld:'Mark as held', addTopic:'Add topic', addFollowUp:'Add commitment',
+  copyFollowUps:'Copy commitments', copied:'Copied — paste into SFC Tasks',
+  month:'Month', week:'Week', list:'List', print:'Print',
+  internal:'Internal meeting', external:'External appointment', online:'Online meeting', visit:'Visit or tour',
+  scheduled:'Scheduled', held:'Held', cancelled:'Cancelled', postponed:'Postponed',
+  invited:'Invited', attended:'Attended', declined:'Declined', tentative:'Tentative',
+  active:'Active', on_hold:'On hold', completed:'Completed', archived:'Archived',
+  manager:'Manager', member:'Team member', admin:'Administrator',
+  none_:'Does not repeat', weekly:'Weekly', biweekly:'Every two weeks', monthly:'Monthly',
+  errTitle:'A title is required', errStart:'Start date and time are required', errEnd:'End time cannot be before start time',
+  conflictRoom:'That room is already booked: {x}', conflictPerson:'{p} is already booked: {x}',
+  conflictsFound:'Schedule clash', saveAnyway:'Save anyway', reviewConflicts:'Review the clash',
+  confirmDelete:'Confirm delete', confirmDeleteMsg:'“{x}” will be permanently deleted. This cannot be undone.',
+  deleteSeries:'Delete the whole series', deleteOne:'Delete only this one',
+  emptyMeetings:'No appointments yet', emptyMeetingsMsg:'Add your first one with its topics and attendees.',
+  emptyMine:'Nothing scheduled for you', emptyMineMsg:'Meetings you are invited to will appear here.',
+  emptyActivity:'No changes yet', emptySearch:'No matches', emptySearchMsg:'Try another word or clear a filter.',
+  emptyNotif:'No notifications', emptyMinutes:'No minutes recorded yet',
+  notifications:'Notifications', markAllRead:'Mark all read',
+  nSoon:'Within 24 hours', nNow:'Within the hour', nNeedMinutes:'Ended without minutes', nChanged:'Time changed',
+  myProfile:'My profile', editName:'Edit name', nameAr:'Name (Arabic)', nameEn:'Name (English)',
+  welcomeTitle:'Welcome', welcomeMsg:'Enter your name as you want the rest of the team to see it.',
+  nameHint:'This name appears in attendance and minutes instead of your email.',
+  savedName:'Name updated', notYou:'You can only change your own name',
+  team:'Team members', role:'Role', addUser:'Add member', notifPrefs:'Notification preferences',
+  prefReminder:'Appointment reminders', prefMinutes:'Missing-minutes alerts', prefChanges:'Schedule changes',
+  orgDefaults:'Organization defaults', tz:'Time zone', language:'Language', theme:'Theme', dark:'Dark', light:'Light',
+  dataMode:'Data source', rooms:'Rooms', active_:'Active', defaultDur:'Default duration',
+  tasksNote:'Task tracking lives in SFC Tasks. Commitments here are part of the minutes only.',
+  aCreated:'created', aTime:'rescheduled', aStatus:'changed status', aMinutes:'recorded minutes',
+  aAttendees:'updated attendees', aEdited:'edited', aDeleted:'deleted',
+  savedOk:'Saved', deletedOk:'Deleted', searchResults:'Results for “{q}”',
+  live:'Live', liveOff:'Not syncing', liveOn:'Changes from other devices arrive instantly',
+  syncing:'Syncing…', deletedElsewhere:'This appointment was deleted on another device',
+  appSection:'App', install:'Install app', installed:'Installed on this device',
+  installHint:'Install it to work offline and open it like any other app.',
+  installIOS:'On iPhone: in Safari tap Share, then “Add to Home Screen”.',
+  offline:'Offline', onlineL:'Online', offlineNote:'You are offline — changes are saved on this device.',
+  updateReady:'An app update is ready', reload:'Reload',
+  storage:'Data is stored', storageLocal:'On this device', storageCloud:'Supabase (cloud)',
+  resetData:'Reset demo data', resetMsg:'Everything you added on this device will be removed and the original demo data restored.'
+}};
+let LANG = 'ar';
+const t = k => (T[LANG] && T[LANG][k]) || (T.en[k]) || k;
+
+/* ---------- 4. Enum metadata ---------- */
+const KINDS    = ['internal','external','online','visit'];
+const STATUSES = ['scheduled','held','cancelled','postponed'];
+const ATTEND   = ['invited','attended','declined','tentative'];
+const ROLES    = ['manager','member','admin'];
+const REPEATS  = ['none_','weekly','biweekly','monthly'];
+const ROOMS    = ['قاعة الاجتماعات الرئيسية','قاعة التدريب','مكتب الرئيس التنفيذي','خارج المقر'];
+const CHIP = {
+  internal:'c-green', external:'c-orange', online:'c-blue', visit:'c-gold',
+  scheduled:'c-blue', held:'c-green', cancelled:'c-slate', postponed:'c-gold',
+  invited:'c-slate', attended:'c-green', declined:'c-red', tentative:'c-gold',
+  active:'c-green', on_hold:'c-gold', completed:'c-slate', archived:'c-slate', conflict:'c-red'
+};
+/* Shape + text carry the meaning as well as colour. */
+const GLYPH = {
+  internal:'▣', external:'↗', online:'◉', visit:'⚑',
+  scheduled:'●', held:'✓', cancelled:'✕', postponed:'❙❙',
+  invited:'○', attended:'✓', declined:'✕', tentative:'?', conflict:'!'
+};
+function chip(key,extra=''){ return `<span class="chip ${CHIP[key]||'c-slate'} ${extra}"><span class="glyph" aria-hidden="true">${GLYPH[key]||'●'}</span>${esc(t(key))}</span>`; }
+
+/* ---------- 5. Icons ---------- */
+const I = {
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 11h18"/>',
+  list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+  user:'<path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  folder:'<path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  hist:'<path d="M3 12a9 9 0 109-9 9 9 0 00-7 3.3"/><path d="M3 4v4h4"/><path d="M12 8v4l3 2"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-2.9 1.2V21a2 2 0 11-4 0v-.1A1.7 1.7 0 007 19.4a1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1A1.7 1.7 0 003 15a2 2 0 010-4 1.7 1.7 0 001.3-2.9l-.1-.1a2 2 0 112.8-2.8l.1.1A1.7 1.7 0 009 4.6 2 2 0 0111 3a2 2 0 014 0 1.7 1.7 0 002.9 1.3l.1-.1a2 2 0 112.8 2.8l-.1.1A1.7 1.7 0 0021 11a2 2 0 010 4z"/>',
+  alert:'<path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L14.7 3.9a2 2 0 00-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
+  x:'<path d="M18 6L6 18M6 6l12 12"/>',
+  pin:'<path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 1118 0z"/><circle cx="12" cy="10" r="3"/>',
+  doc:'<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6"/>',
+  trash:'<path d="M3 6h18M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  copy:'<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>',
+  check:'<path d="M20 6L9 17l-5-5"/>',
+  inbox:'<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5.5L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.5-6.5A2 2 0 0016.8 4H7.2a2 2 0 00-1.7 1.5z"/>',
+  repeat:'<path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/>',
+  download:'<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/>'
+};
+const svg=(d,cls='')=>`<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+
+/* ---------- 6. State + database ---------- */
+const DB = { users:[], programs:[], meetings:[], agenda_items:[], meeting_attendees:[], follow_ups:[], activity_log:[] };
+const S = {
+  user:null, view:'dashboard', mode:'demo', sb:null, query:'', reads:new Set(),
+  prefs:{ reminder:true, minutesAlert:true, changes:true, tz:'Asia/Riyadh', defaultDur:60 },
+  calView:'month', calMonth:new Date().getMonth(), calYear:new Date().getFullYear(), weekOf:startOfWeek(new Date()).toISOString(),
+  canInstall:false, installed:false, rtOn:false, openMeetingId:null, errDetail:'', conn:null,
+  mt:{ kind:'', status:'', attendee:'', program:'', room:'', range:'', sort:'start_at' }
+};
+const byId = (tbl,id)=> DB[tbl].find(r=>r.id===id);
+const userName = id => (byId('users',id)||{}).name || '—';
+const canManage = ()=> S.user && (S.user.role==='manager' || S.user.role==='admin');
+const attendeesOf = mid => DB.meeting_attendees.filter(a=>a.meeting_id===mid);
+const isAttendee = (mid,uid_) => attendeesOf(mid).some(a=>a.user_id===uid_);
+const agendaOf = mid => DB.agenda_items.filter(a=>a.meeting_id===mid).sort((a,b)=>(a.sort_order||0)-(b.sort_order||0));
+const followUpsOf = mid => DB.follow_ups.filter(f=>f.meeting_id===mid);
+const isPast = m => new Date(m.end_at||m.start_at) < new Date();
+/* A meeting "needs minutes" once it has ended, was not cancelled, and has no notes or decisions. */
+const needsMinutes = m => isPast(m) && !['cancelled','postponed'].includes(m.status) && !(m.notes||'').trim() && !(m.decisions||'').trim();
+const canEditMeeting = m => canManage() || m.created_by===S.user.id;
+
+/* ---------- 7. Conflict detection ---------- */
+function overlaps(aStart,aEnd,bStart,bEnd){
+  const s1=new Date(aStart), e1=new Date(aEnd||aStart), s2=new Date(bStart), e2=new Date(bEnd||bStart);
+  return s1 < e2 && s2 < e1;
+}
+function findConflicts(draft, ignoreId){
+  const out=[];
+  DB.meetings.forEach(m=>{
+    if(m.id===ignoreId || ['cancelled','postponed'].includes(m.status)) return;
+    if(!overlaps(draft.start_at,draft.end_at,m.start_at,m.end_at)) return;
+    if(draft.room && m.room===draft.room && draft.room!=='خارج المقر') out.push({type:'room',meeting:m});
+    const shared = (draft.attendees||[]).filter(u=>isAttendee(m.id,u));
+    shared.forEach(u=>out.push({type:'person',meeting:m,user_id:u}));
+  });
+  return out;
+}
+function conflictCount(){
+  const seen=new Set(); let n=0;
+  DB.meetings.filter(m=>m.status==='scheduled' && !isPast(m)).forEach(m=>{
+    const c=findConflicts({start_at:m.start_at,end_at:m.end_at,room:m.room,attendees:attendeesOf(m.id).map(a=>a.user_id)}, m.id);
+    c.forEach(x=>{ const key=[m.id,x.meeting.id].sort().join('|')+x.type; if(!seen.has(key)){seen.add(key);n++;} });
+  });
+  return n;
+}
+
+/* ---------- 8. Seed data (SFC programmes) ---------- */
+function seed(){
+  const U=[
+    {id:'u1',name:'عمر برهان زازا',name_en:'Omar Burhan Zaza',email:'omartatatow@gmail.com',role:'manager',active:true},
+    {id:'u2',name:'هشام الخطيب',name_en:'Hisham Al Khatib',email:'hisham@saudifriendship.org',role:'admin',active:true},
+    {id:'u3',name:'نوف الدوسري',name_en:'Nouf Al-Dossari',email:'nouf@saudifriendship.org',role:'member',active:true},
+    {id:'u4',name:'فيصل المطيري',name_en:'Faisal Al-Mutairi',email:'faisal@saudifriendship.org',role:'member',active:true},
+    {id:'u5',name:'ليلى الهاجري',name_en:'Layla Al-Hajri',email:'layla@saudifriendship.org',role:'member',active:true}
+  ];
+  const P=[
+    {id:'p1',name:'مشروع عين',name_en:'Ain Project',client_name:'جبل القارة',description:'مركز ثقافي تفاعلي بمساحة ٩٠٠ م٢',status:'active'},
+    {id:'p2',name:'جائزة سفراء الوطن',name_en:'National Ambassadors Award',client_name:'مؤسسة مسك',description:'هاكاثون شبابي ١٧–٢٥ سنة',status:'active'},
+    {id:'p3',name:'سفراء الثقافة',name_en:'Culture Ambassadors',client_name:'',description:'تدريب طلاب متطوعين على استقبال الزوار',status:'active'},
+    {id:'p4',name:'الجولات الثقافية للمدارس',name_en:'School Cultural Tours',client_name:'',description:'برنامج زيارات مدرسية',status:'active'},
+    {id:'p5',name:'المقهى الإنجليزي',name_en:'English Café',client_name:'',description:'لقاءات تبادل لغوي أسبوعية',status:'on_hold'}
+  ];
+  const M=[
+    {id:'m1',title:'اللجنة التنفيذية — مشروع عين',kind:'internal',start_at:dayAt(0,10,0),end_at:dayAt(0,11,30),
+     room:'قاعة الاجتماعات الرئيسية',location_or_link:'',description:'مراجعة تصميم المعرض التفاعلي وجدول التنفيذ قبل عرضه على الداعمين.',
+     status:'scheduled',program_id:'p1',created_by:'u1',notes:'',decisions:'',guests:'',series_id:null},
+    {id:'m2',title:'موعد مع بلدية الأحساء — تصاريح التصوير',kind:'external',start_at:dayAt(0,13,30),end_at:dayAt(0,14,30),
+     room:'خارج المقر',location_or_link:'مبنى البلدية، الهفوف',description:'متابعة طلب تصاريح التصوير داخل جبل القارة.',
+     status:'scheduled',program_id:'p1',created_by:'u1',notes:'',decisions:'',guests:'م. سعد العتيبي — إدارة التراخيص',series_id:null},
+    {id:'m3',title:'تنسيق الحملة التسويقية — جائزة سفراء الوطن',kind:'online',start_at:dayAt(2,13,0),end_at:dayAt(2,14,0),
+     room:'خارج المقر',location_or_link:'https://meet.example.org/sfc-award',description:'الاتفاق على خطة المؤثرين والجدول الإعلاني حتى اليوم الوطني.',
+     status:'scheduled',program_id:'p2',created_by:'u1',notes:'',decisions:'',guests:'',series_id:null},
+    {id:'m4',title:'زيارة مدرسة الأحساء الأهلية',kind:'visit',start_at:dayAt(4,9,30),end_at:dayAt(4,11,0),
+     room:'خارج المقر',location_or_link:'مدرسة الأحساء الأهلية، المبرز',description:'عرض برنامج الجولات الثقافية على مديري المدارس للفصل القادم.',
+     status:'scheduled',program_id:'p4',created_by:'u1',notes:'',decisions:'',guests:'أ. منى القحطاني — مديرة المدرسة',series_id:null},
+    {id:'m5',title:'المراجعة الأسبوعية للعمليات',kind:'internal',start_at:dayAt(3,9,0),end_at:dayAt(3,10,0),
+     room:'قاعة الاجتماعات الرئيسية',location_or_link:'',description:'متابعة سير البرامج والجدول القادم.',
+     status:'scheduled',program_id:null,created_by:'u1',notes:'',decisions:'',guests:'',series_id:'s1'},
+    {id:'m6',title:'المراجعة الأسبوعية للعمليات',kind:'internal',start_at:dayAt(-4,9,0),end_at:dayAt(-4,10,0),
+     room:'قاعة الاجتماعات الرئيسية',location_or_link:'',description:'متابعة سير البرامج والجدول القادم.',
+     status:'held',program_id:null,created_by:'u1',series_id:'s1',guests:'',
+     notes:'حضر الجميع عدا فيصل. أُثيرت مسألة تأخر تصاريح التصوير في جبل القارة.',
+     decisions:'اعتماد تأجيل انطلاق المقهى الإنجليزي أسبوعين لحين اكتمال التسجيل.'},
+    {id:'m7',title:'جلسة تدريب سفراء الثقافة — الدفعة الأولى',kind:'internal',start_at:dayAt(-9,16,0),end_at:dayAt(-9,18,0),
+     room:'قاعة التدريب',location_or_link:'',description:'التدريب التمهيدي للدفعة الأولى من الطلاب المتطوعين.',
+     status:'held',program_id:'p3',created_by:'u1',guests:'',series_id:null,
+     notes:'حضر ١٨ طالباً من أصل ٢٢ مسجلاً.',decisions:'اعتماد دليل الاستقبال نسخة ٢ كمرجع للدفعة الأولى.'},
+    {id:'m8',title:'لقاء تعريفي مع مؤسسة مسك',kind:'online',start_at:dayAt(-2,11,0),end_at:dayAt(-2,12,0),
+     room:'خارج المقر',location_or_link:'https://meet.example.org/misk',description:'عرض الجائزة وفرص الشراكة.',
+     status:'scheduled',program_id:'p2',created_by:'u1',notes:'',decisions:'',guests:'فريق الشراكات — مؤسسة مسك',series_id:null},
+    {id:'m9',title:'مقابلة مرشحي سفراء الثقافة',kind:'internal',start_at:dayAt(-1,14,0),end_at:dayAt(-1,16,0),
+     room:'قاعة التدريب',location_or_link:'',description:'مقابلة ١٢ مرشحاً للدفعة الثانية.',
+     status:'scheduled',program_id:'p3',created_by:'u1',notes:'',decisions:'',guests:'',series_id:null},
+    {id:'m10',title:'اجتماع الحفل الختامي — الجائزة',kind:'internal',start_at:dayAt(2,13,30),end_at:dayAt(2,14,30),
+     room:'قاعة الاجتماعات الرئيسية',location_or_link:'',description:'ترتيبات القاعة والضيوف للحفل الختامي.',
+     status:'scheduled',program_id:'p2',created_by:'u1',notes:'',decisions:'',guests:'',series_id:null}
+  ];
+  const A=[
+    {id:'a1',meeting_id:'m1',topic:'مراجعة المخطط ثلاثي الأبعاد للمعرض',sort_order:1,notes:''},
+    {id:'a2',meeting_id:'m1',topic:'تصاريح التصوير داخل جبل القارة',sort_order:2,notes:''},
+    {id:'a3',meeting_id:'m1',topic:'الجدول الزمني حتى العرض على الداعمين',sort_order:3,notes:''},
+    {id:'a4',meeting_id:'m2',topic:'المستندات المطلوبة للتصريح',sort_order:1,notes:''},
+    {id:'a5',meeting_id:'m3',topic:'اختيار المؤثر الرئيسي للحملة',sort_order:1,notes:''},
+    {id:'a6',meeting_id:'m3',topic:'توزيع الميزانية على المنصات',sort_order:2,notes:''},
+    {id:'a7',meeting_id:'m4',topic:'باقات الزيارة وأسعارها',sort_order:1,notes:''},
+    {id:'a8',meeting_id:'m4',topic:'الجدول الزمني للفصل الدراسي',sort_order:2,notes:''},
+    {id:'a9',meeting_id:'m6',topic:'حالة البرامج الجارية',sort_order:1,notes:'ثلاثة برامج تسير حسب الخطة.'},
+    {id:'a10',meeting_id:'m6',topic:'جاهزية المقهى الإنجليزي',sort_order:2,notes:'التسجيل أقل من المستهدف، تأجيل الانطلاق أسبوعين.'},
+    {id:'a11',meeting_id:'m7',topic:'دليل استقبال الزوار',sort_order:1,notes:'اعتُمدت النسخة ٢.'},
+    {id:'a12',meeting_id:'m7',topic:'توزيع المناوبات على المتطوعين',sort_order:2,notes:''},
+    {id:'a13',meeting_id:'m10',topic:'قائمة الضيوف والدعوات',sort_order:1,notes:''}
+  ];
+  const AT=[];
+  const invite=(mid,users,st='invited')=>users.forEach(u=>AT.push({id:uid(),meeting_id:mid,user_id:u,attendance_status:st}));
+  invite('m1',['u1','u2','u3']); invite('m2',['u1','u3']); invite('m3',['u1','u4','u5']);
+  invite('m4',['u1','u3']); invite('m5',['u1','u2','u3','u4','u5']);
+  invite('m6',['u1','u2','u3','u5'],'attended'); AT.push({id:uid(),meeting_id:'m6',user_id:'u4',attendance_status:'declined'});
+  invite('m7',['u1','u5'],'attended'); invite('m8',['u1','u2']); invite('m9',['u1','u3']); invite('m10',['u1','u4','u5']);
+  const F=[
+    {id:'f1',meeting_id:'m6',text:'إعادة جدولة انطلاق المقهى الإنجليزي',owner_id:'u5',due_at:dayAt(-1,17,0)},
+    {id:'f2',meeting_id:'m6',text:'متابعة تصاريح التصوير مع البلدية',owner_id:'u3',due_at:dayAt(1,17,0)},
+    {id:'f3',meeting_id:'m7',text:'توزيع مناوبات المتطوعين على الأسبوع',owner_id:'u3',due_at:dayAt(2,17,0)},
+    {id:'f4',meeting_id:'m7',text:'تحديث دليل الاستقبال إلى النسخة ٣',owner_id:'u5',due_at:dayAt(6,17,0)}
+  ];
+  const L=[];
+  const log=(ei,act,det,by,at)=>L.push({id:uid(),entity_type:'meeting',entity_id:ei,action:act,details:det,performed_by:by,created_at:at});
+  M.forEach(m=>log(m.id,'created',m.title,m.created_by,dayAt(-14,8,0)));
+  log('m6','minutes_recorded','','u1',dayAt(-4,10,20));
+  log('m7','minutes_recorded','','u1',dayAt(-9,18,15));
+  log('m6','status_changed','مجدول → عُقد','u1',dayAt(-4,10,25));
+  log('m4','time_changed',fmtDate(dayAt(5))+' → '+fmtDate(dayAt(4)),'u1',dayAt(-3,12,0));
+
+  DB.users=U; DB.programs=P; DB.meetings=M; DB.agenda_items=A; DB.meeting_attendees=AT; DB.follow_ups=F; DB.activity_log=L;
+  [...M,...P].forEach(r=>{ r.created_at=r.created_at||dayAt(-14); r.updated_at=r.updated_at||nowISO(); });
+}
+
+/* ---------- 9. Store (demo / Supabase write-through) ---------- */
+const Store = {
+  /* Load supabase-js from the CDN, but never let a slow or blocked
+     network hang the whole app on a blank screen — give up after 6s
+     and run offline instead. */
+  /* Try more than one CDN: one of them being blocked shouldn't take the
+     whole app down. Give up after 6s per source rather than hanging. */
+  CDNS:['https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
+        'https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js'],
+  loadOne(src){
+    return new Promise(res=>{
+      let done=false;
+      const finish=v=>{ if(!done){ done=true; clearTimeout(timer); res(v); } };
+      const timer=setTimeout(()=>finish(false),6000);
+      const el=document.createElement('script');
+      el.src=src; el.onload=()=>finish(!!window.supabase); el.onerror=()=>finish(false);
+      document.head.appendChild(el);
+    });
+  },
+  /* Race the sources rather than trying them in turn: waiting 6s per CDN
+     would mean 12s of blank screen before giving up. */
+  async loadLib(){
+    if(window.supabase) return true;
+    const ok = await Promise.race([
+      ...this.CDNS.map(src=>this.loadOne(src).then(v=>v?true:new Promise(()=>{}))),
+      new Promise(r=>setTimeout(()=>r(false),6500))
+    ]);
+    if(!ok) S.errDetail='CDN blocked or offline';
+    return !!ok;
+  },
+  /* Live mode creates the client only. Rows are read after sign-in,
+     because row-level security gives an anonymous caller nothing. */
+  async init(){
+    const c = CONN.get();
+    S.conn = c;
+    if(c.url && c.key){
+      if(await this.loadLib()){
+        try{
+          S.sb = window.supabase.createClient(c.url, c.key,
+            { auth:{ persistSession:true, autoRefreshToken:true, detectSessionInUrl:false } });
+          S.mode='live';
+          return;
+        }catch(e){ S.errDetail=e.message; console.warn('Could not create the Supabase client:', e.message); }
+      }
+      S.mode='error';      // configured but unreachable — never invent data
+      return;
+    }
+    S.mode='demo';
+    if(!Local.load()){ seed(); Local.save(); }
+  },
+  async loadAll(){
+    for(const tb of TABLES){
+      const {data,error}=await S.sb.from(tb).select('*');
+      if(error) throw error;
+      DB[tb]=data||[];
+    }
+  },
+  insert(tbl,row){ row.id=row.id||uid(); row.created_at=nowISO(); row.updated_at=nowISO(); DB[tbl].push(row);
+    if(S.mode==='live'){ RT.mark(tbl,row.id); S.sb.from(tbl).insert(row).then(({error})=>error&&toast(error.message,'bad')); }
+    else Local.save(); return row; },
+  update(tbl,id,patch){ const r=byId(tbl,id); if(!r) return null; Object.assign(r,patch,{updated_at:nowISO()});
+    if(S.mode==='live'){ RT.mark(tbl,id); S.sb.from(tbl).update({...patch,updated_at:r.updated_at}).eq('id',id).then(({error})=>error&&toast(error.message,'bad')); }
+    else Local.save(); return r; },
+  remove(tbl,id){ DB[tbl]=DB[tbl].filter(r=>r.id!==id);
+    if(S.mode==='live'){ RT.mark(tbl,id); S.sb.from(tbl).delete().eq('id',id).then(({error})=>error&&toast(error.message,'bad')); }
+    else Local.save(); }
+};
+
+/* ---------- 9b. Local persistence (offline / demo mode) ----------
+   An installed app that forgets everything on reload is useless, so demo
+   mode writes through to localStorage. Wrapped throughout: private-mode
+   and sandboxed frames throw on access, and that must not break the app. */
+const Local = {
+  KEY:'sfc-meetings-db-v1',
+  available(){ try{ const k='__t'; localStorage.setItem(k,'1'); localStorage.removeItem(k); return true; }catch(e){ return false; } },
+  save(){
+    if(!this.available()) return false;
+    clearTimeout(this._tm);
+    this._tm=setTimeout(()=>{ try{ localStorage.setItem(this.KEY, JSON.stringify({v:1,at:nowISO(),db:DB})); }
+      catch(e){ console.warn('Could not save locally:', e.message); } },250);
+    return true;
+  },
+  load(){
+    if(!this.available()) return false;
+    try{
+      const raw=localStorage.getItem(this.KEY); if(!raw) return false;
+      const parsed=JSON.parse(raw);
+      if(!parsed || parsed.v!==1 || !parsed.db || !Array.isArray(parsed.db.users) || !parsed.db.users.length) return false;
+      TABLES.forEach(tb=>{ DB[tb] = Array.isArray(parsed.db[tb]) ? parsed.db[tb] : []; });
+      return true;
+    }catch(e){ console.warn('Stored data unreadable, starting fresh:', e.message); return false; }
+  },
+  /* Write immediately. Phones kill backgrounded apps, so a debounced
+     write that is still pending when the app is dismissed would be lost. */
+  flush(){
+    clearTimeout(this._tm);
+    if(!this.available()) return false;
+    try{ localStorage.setItem(this.KEY, JSON.stringify({v:1,at:nowISO(),db:DB})); return true; }
+    catch(e){ console.warn('Could not save locally:', e.message); return false; }
+  },
+  clear(){ clearTimeout(this._tm); try{ localStorage.removeItem(this.KEY); }catch(e){} }
+};
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden' && S.mode==='demo') Local.flush(); });
+window.addEventListener('pagehide',()=>{ if(S.mode==='demo') Local.flush(); });
+
+/* ---------- 9c. Realtime -------------------------------------------
+   Changes made on one device appear on the others without a reload.
+   Four things this has to get right:
+     - patch the local tables surgically, never refetch the world
+     - batch a burst of events into one repaint
+     - ignore the echo of our own writes
+     - never repaint while someone is typing into a form            */
+const RT = {
+  ch:null, timer:null, dirty:false, echo:new Map(),
+
+  start(){
+    if(S.mode!=='live' || !S.sb) return;
+    this.stop();
+    this.ch = S.sb.channel('sfc-meetings-'+Math.random().toString(36).slice(2,8));
+    TABLES.forEach(tb=>{
+      this.ch.on('postgres_changes',{event:'*',schema:'public',table:tb},p=>this.onChange(tb,p));
+    });
+    this.ch.subscribe(status=>{
+      S.rtOn = (status==='SUBSCRIBED');
+      updateLivePill();
+      if(status==='CHANNEL_ERROR'||status==='TIMED_OUT') setTimeout(()=>this.start(),4000);
+    });
+  },
+  stop(){ try{ if(this.ch) S.sb.removeChannel(this.ch); }catch(e){} this.ch=null; S.rtOn=false; },
+
+  /* Remember our own writes briefly so their echo doesn't repaint the UI. */
+  mark(tbl,id){ const k=tbl+':'+id; this.echo.set(k,Date.now()); setTimeout(()=>this.echo.delete(k),4000); },
+  isEcho(tbl,id){ return this.echo.has(tbl+':'+id); },
+
+  onChange(tbl,p){
+    const row = (p.eventType==='DELETE') ? p.old : p.new;
+    if(!row || !row.id) return;
+    const mine = this.isEcho(tbl,row.id);
+
+    if(p.eventType==='INSERT'){
+      if(!byId(tbl,row.id)) DB[tbl].push(row);
+    } else if(p.eventType==='UPDATE'){
+      const r=byId(tbl,row.id);
+      if(r) Object.assign(r,row); else DB[tbl].push(row);
+    } else {
+      DB[tbl]=DB[tbl].filter(x=>x.id!==row.id);
+    }
+    if(!mine) this.queue();      // our own edits are already on screen
+  },
+
+  queue(){ clearTimeout(this.timer); this.timer=setTimeout(()=>this.flush(),250); },
+
+  flush(){
+    if(!S.user) return;
+    /* Mid-edit guard: a half-typed form must not be torn down under
+       the user. Hold the repaint until the dialog closes. */
+    if(document.getElementById('modal-host').innerHTML){ this.dirty=true; return; }
+    this.dirty=false;
+    render();
+    if(S.openMeetingId){
+      if(byId('meetings',S.openMeetingId)) reopenMeetingQuietly(S.openMeetingId);
+      else { closeDrawer(); S.openMeetingId=null; toast(t('deletedElsewhere'),'warn'); }
+    }
+  },
+
+  /* Events can be missed while a phone is asleep, so re-read on return. */
+  async resync(){
+    if(S.mode!=='live'||!S.sb) return;
+    try{
+      for(const tb of TABLES){
+        const {data,error}=await S.sb.from(tb).select('*');
+        if(!error && data) DB[tb]=data;
+      }
+      if(S.user) this.flush();
+    }catch(e){ console.warn('Resync failed:', e.message); }
+  }
+};
+
+/* ---------- 10. Change log ---------- */
+function logAct(entity_id, action, details){
+  Store.insert('activity_log',{ entity_type:'meeting', entity_id, action, details, performed_by:S.user.id, created_at:nowISO() });
+}
+function actionLabel(a){
+  return ({created:t('aCreated'),time_changed:t('aTime'),status_changed:t('aStatus'),minutes_recorded:t('aMinutes'),
+    attendees_changed:t('aAttendees'),edited:t('aEdited'),deleted:t('aDeleted')})[a] || a;
+}
+</script>
+<script>
+/* ---------- 11. Shell ---------- */
+const NAV=[
+  {g:'navMain',items:[{v:'dashboard',i:I.sun},{v:'calendar',i:I.cal},{v:'mine',i:I.user}]},
+  {g:'navRecords',items:[{v:'meetings',i:I.list},{v:'minutes',i:I.doc},{v:'programs',i:I.folder}]},
+  {g:'navAdmin',items:[{v:'activity',i:I.hist},{v:'settings',i:I.gear}]}
+];
+function displayName(u){ if(!u) return '—'; return LANG==='en' && u.name_en ? u.name_en : u.name; }
+function progLabel(p){ if(!p) return ''; return LANG==='en' && p.name_en ? p.name_en : p.name; }
+function navCounts(){
+  const today = DB.meetings.filter(m=>sameDay(m.start_at,new Date()) && m.status!=='cancelled').length;
+  const mine  = DB.meetings.filter(m=>isAttendee(m.id,S.user.id) && !isPast(m) && m.status==='scheduled').length;
+  const need  = DB.meetings.filter(needsMinutes).length;
+  return {dashboard:today, mine, minutes:need};
+}
+function renderNav(){
+  const c=navCounts();
+  $('#nav').innerHTML = NAV.map(g=>`<div class="nav-lbl">${esc(t(g.g))}</div>`+
+    g.items.map(it=>{
+      const n=c[it.v]||0, warn = it.v==='minutes' && n>0;
+      return `<a href="#${it.v}" data-act="nav" data-view="${it.v}" class="${S.view===it.v?'on':''}">
+        ${svg(it.i)}<span>${esc(t(it.v))}</span>${n?`<span class="cnt ${warn?'warn':''}">${n}</span>`:''}</a>`;
+    }).join('')).join('');
+  moveNavPill();
+  $('#me-av').textContent=initials(displayName(S.user));
+  $('#me-name').textContent=displayName(S.user);
+  $('#me-role').textContent=t(S.user.role);
+  $('#side-name').textContent=t('sideName'); $('#side-org').textContent=t('org');
+  $('#q').placeholder=t('search'); $('#lang').textContent=LANG==='ar'?'EN':'ع';
+}
+/* Slide the highlight to the active item. Measured from the live DOM so
+   it stays correct whatever the label lengths or language. */
+function moveNavPill(){
+  const nav=$('#nav'); if(!nav) return;
+  let pill=nav.querySelector('.nav-pill');
+  if(!pill){ pill=document.createElement('div'); pill.className='nav-pill'; nav.insertBefore(pill,nav.firstChild); }
+  const on=nav.querySelector('a.on');
+  if(!on){ pill.style.opacity='0'; return; }
+  const y=on.offsetTop, h=on.offsetHeight;
+  if(!h){ pill.style.opacity='0'; return; }      // not laid out yet
+  pill.style.height=h+'px';
+  pill.style.transform='translateY('+y+'px)';
+  pill.style.opacity='1';
+}
+
+function renderTabbar(){
+  const items=[{v:'dashboard',i:I.sun},{v:'calendar',i:I.cal},{v:'mine',i:I.user},{v:'minutes',i:I.doc},{v:'settings',i:I.gear}];
+  $('#tabbar').innerHTML=items.map(it=>`<a href="#${it.v}" data-act="nav" data-view="${it.v}" class="${S.view===it.v?'on':''}">${svg(it.i)}<span>${esc(t(it.v))}</span></a>`).join('');
+}
+
+/* ---------- 12. Small builders ---------- */
+function avatar(id){ const u=byId('users',id); return `<span class="avatar" title="${esc(displayName(u))}">${esc(initials(displayName(u)))}</span>`; }
+function whoCell(id){ return id?`<span class="who">${avatar(id)}<span>${esc(displayName(byId('users',id)))}</span></span>`:'—'; }
+function emptyState(tk,mk,btn){ return `<div class="empty">${svg(I.inbox)}<h4>${esc(t(tk))}</h4><p>${esc(t(mk))}</p>${btn||''}</div>`; }
+function whereOf(m){ return m.kind==='online' ? (m.location_or_link||t('online'))
+  : (m.location_or_link || m.room || ''); }
+
+function meetingRow(m){
+  const d=new Date(m.start_at), prog=progLabel(byId('programs',m.program_id));
+  const need=needsMinutes(m), where=whereOf(m);
+  return `<button class="row ${need?'soon':''}" data-act="open-meeting" data-id="${m.id}">
+    <span class="when"><span class="d">${String(d.getDate()).padStart(2,'0')}</span><span class="m">${esc(shortMonth(m.start_at))}</span></span>
+    <span class="body"><span class="t">${esc(m.title)}</span>
+      <span class="meta">
+        <span>${svg(I.clock)}${esc(fmtRange(m))}</span>
+        ${where?`<span>${svg(I.pin)}${esc(where.slice(0,30))}</span>`:''}
+        ${prog?`<span>${svg(I.folder)}${esc(prog)}</span>`:''}
+        ${chip(m.kind,'chip-sm')}${m.status!=='scheduled'?chip(m.status,'chip-sm'):''}
+        ${need?`<span class="chip c-orange chip-sm"><span class="glyph">!</span>${esc(t('needMinutes'))}</span>`:''}
+      </span></span></button>`;
+}
+
+/* ---------- 13. Filtering ---------- */
+function filterMeetings(f){
+  let rows=DB.meetings.slice();
+  if(f.kind) rows=rows.filter(m=>m.kind===f.kind);
+  if(f.status) rows=rows.filter(m=>m.status===f.status);
+  if(f.program) rows=rows.filter(m=>m.program_id===f.program);
+  if(f.room) rows=rows.filter(m=>m.room===f.room);
+  if(f.attendee) rows=rows.filter(m=>isAttendee(m.id,f.attendee));
+  if(f.range){ const n=Number(f.range), now=new Date();
+    rows=rows.filter(m=>{ const d=daysBetween(now,m.start_at); return n>0?(d>=0&&d<=n):(d<0); }); }
+  rows.sort((a,b)=>{
+    if(f.sort==='title') return String(a.title).localeCompare(String(b.title));
+    if(f.sort==='updated') return new Date(b.updated_at||0)-new Date(a.updated_at||0);
+    return new Date(a.start_at)-new Date(b.start_at);
+  });
+  return rows;
+}
+
+/* ---------- 14. Today ---------- */
+function viewDashboard(){
+  const now=new Date();
+  const todayM=DB.meetings.filter(m=>sameDay(m.start_at,now)&&m.status!=='cancelled').sort((a,b)=>new Date(a.start_at)-new Date(b.start_at));
+  const week=DB.meetings.filter(m=>{const d=daysBetween(now,m.start_at);return d>0&&d<=7&&m.status!=='cancelled';})
+    .sort((a,b)=>new Date(a.start_at)-new Date(b.start_at));
+  const need=DB.meetings.filter(needsMinutes).sort((a,b)=>new Date(b.start_at)-new Date(a.start_at));
+  const mins=[...todayM,...week].reduce((s,m)=>s+(m.end_at?(new Date(m.end_at)-new Date(m.start_at))/60000:60),0);
+  const clashes=conflictCount();
+  const stat=(k,v,cls,m)=>`<div class="card stat ${cls||''}"><span class="bar"></span><div class="k">${esc(t(k))}</div>
+    <div class="v">${v}</div>${m?`<div class="m">${esc(m)}</div>`:''}</div>`;
+  return `
+  <div class="page-head">
+    <div><h1>${esc(t('dashboard'))} · ${esc(fmtDate(now))}</h1><p>${esc(t('dashSub'))}</p></div>
+    <div class="right">${canManage()?`<button class="btn primary" data-act="new-meeting">${svg(I.plus)}${esc(t('addMeeting'))}</button>`:''}</div>
+  </div>
+  <div class="grid stats">
+    ${stat('statToday',todayM.length,'')}
+    ${stat('statWeek',week.length,'gold')}
+    ${stat('statNeed',need.length, need.length?'warn':'', t('needMinutesHint'))}
+    ${stat('statHours',(mins/60).toFixed(1),'', t('statHoursHint'))}
+    ${stat('statConflicts',clashes, clashes?'bad':'')}
+  </div>
+  <div class="cols">
+    <div style="display:grid;gap:16px">
+      <section class="card panel">
+        <div class="panel-h">${svg(I.sun)}<h3>${esc(t('todayList'))}</h3><span class="chip c-slate chip-sm">${todayM.length}</span></div>
+        <div class="panel-b">${todayM.length?todayM.map(meetingRow).join('')
+          :`<div class="empty" style="padding:30px 18px">${svg(I.check)}<h4>${esc(t('noMeetingsToday'))}</h4><p>${esc(t('freeDay'))}</p></div>`}</div>
+      </section>
+      <section class="card panel">
+        <div class="panel-h">${svg(I.cal)}<h3>${esc(t('next7'))}</h3><span class="chip c-slate chip-sm">${week.length}</span></div>
+        <div class="panel-b">${week.length?week.slice(0,10).map(meetingRow).join('')
+          :emptyState('emptyMeetings','emptyMeetingsMsg',canManage()?`<button class="btn primary" data-act="new-meeting">${esc(t('addMeeting'))}</button>`:'')}</div>
+      </section>
+    </div>
+    <section class="card panel">
+      <div class="panel-h">${svg(I.doc)}<h3>${esc(t('needMinutes'))}</h3><span class="chip ${need.length?'c-orange':'c-slate'} chip-sm">${need.length}</span></div>
+      <div class="panel-b">${need.length?need.map(meetingRow).join('')
+        :`<div class="empty" style="padding:26px 16px">${svg(I.check)}<h4>${esc(t('noneYet'))}</h4></div>`}</div>
+    </section>
+  </div>`;
+}
+
+/* ---------- 15. Calendar (month + week) ---------- */
+function viewCalendar(){
+  const head=`<div class="page-head">
+    <div><h1>${esc(t('calendar'))}</h1><p>${esc(t('org'))}</p></div>
+    <div class="right">
+      <div class="seg"><button class="${S.calView==='month'?'on':''}" data-act="calview" data-v="month">${esc(t('month'))}</button>
+        <button class="${S.calView==='week'?'on':''}" data-act="calview" data-v="week">${esc(t('week'))}</button></div>
+      ${canManage()?`<button class="btn primary" data-act="new-meeting">${svg(I.plus)}${esc(t('addMeeting'))}</button>`:''}
+    </div></div>`;
+  return head + (S.calView==='month' ? monthGrid() : weekGrid());
+}
+const ARROW_L='<path d="M15 18l-6-6 6-6"/>', ARROW_R='<path d="M9 18l6-6-6-6"/>';
+function calNavBar(label){
+  return `<div class="cal-head">
+    <button class="icon-btn" data-act="cal-prev" aria-label="previous">${svg(LANG==='ar'?ARROW_R:ARROW_L)}</button>
+    <h3>${esc(label)}</h3>
+    <button class="icon-btn" data-act="cal-next" aria-label="next">${svg(LANG==='ar'?ARROW_L:ARROW_R)}</button>
+    <button class="btn ghost" data-act="cal-today">${esc(t('today'))}</button></div>`;
+}
+function dowNames(){ return LANG==='ar'?['أحد','اثنين','ثلاثاء','أربعاء','خميس','جمعة','سبت']:['Sun','Mon','Tue','Wed','Thu','Fri','Sat']; }
+function monthGrid(){
+  const y=S.calYear, mo=S.calMonth;
+  const startDow=new Date(y,mo,1).getDay(), total=new Date(y,mo+1,0).getDate(), prevTotal=new Date(y,mo,0).getDate();
+  let cells='';
+  for(let i=0;i<startDow;i++) cells+=`<div class="day out"><div class="n">${prevTotal-startDow+i+1}</div></div>`;
+  for(let d=1;d<=total;d++){
+    const date=new Date(y,mo,d);
+    const ms=DB.meetings.filter(m=>sameDay(m.start_at,date)).sort((a,b)=>new Date(a.start_at)-new Date(b.start_at));
+    cells+=`<div class="day ${sameDay(date,new Date())?'today':''}"><div class="n">${d}</div>
+      ${ms.map(m=>`<button class="ev ${m.status==='cancelled'?'canc':''} ${m.status==='held'?'done':''}" data-act="open-meeting" data-id="${m.id}" title="${esc(m.title)}">${esc(fmtTime(m.start_at))} ${esc(m.title)}</button>`).join('')}</div>`;
+  }
+  const rem=(startDow+total)%7; if(rem) for(let i=1;i<=7-rem;i++) cells+=`<div class="day out"><div class="n">${i}</div></div>`;
+  return calNavBar(monthName(y,mo)) + `<div class="cal">${dowNames().map(d=>`<div class="dow">${esc(d)}</div>`).join('')}${cells}</div>`;
+}
+function weekGrid(){
+  const start=new Date(S.weekOf), H0=7, H1=21;   // 07:00 – 21:00
+  const days=[...Array(7)].map((_,i)=>addDays(start,i));
+  const label = fmtDate(days[0])+' – '+fmtDate(days[6]);
+  const hours=[...Array(H1-H0)].map((_,i)=>H0+i);
+  const gutter=`<div class="gut">${hours.map(h=>`<div class="hr">${String(h).padStart(2,'0')}:00</div>`).join('')}</div>`;
+  const cols=days.map(day=>{
+    const ms=DB.meetings.filter(m=>sameDay(m.start_at,day));
+    const evs=ms.map(m=>{
+      const s=new Date(m.start_at), e=new Date(m.end_at||new Date(s.getTime()+3600000));
+      const top=((s.getHours()+s.getMinutes()/60)-H0)*46;
+      const h=Math.max(22,((e-s)/3600000)*46-2);
+      if(top<-40) return '';
+      return `<button class="wev k-${m.kind} ${m.status==='cancelled'?'canc':''}" style="top:${Math.max(0,top)}px;height:${h}px"
+        data-act="open-meeting" data-id="${m.id}" title="${esc(m.title)}">${esc(m.title)}<small>${esc(fmtTime(m.start_at))}</small></button>`;
+    }).join('');
+    return `<div class="wcol">${hours.map(()=>`<div class="slot"></div>`).join('')}${evs}</div>`;
+  }).join('');
+  const heads=days.map(d=>`<div class="wh ${sameDay(d,new Date())?'today':''}">${esc(dowNames()[d.getDay()])}<small>${String(d.getDate()).padStart(2,'0')}</small></div>`).join('');
+  return calNavBar(label) + `<div class="week"><div class="wh"></div>${heads}${gutter}${cols}</div>`;
+}
+
+/* ---------- 16. Meetings list ---------- */
+function viewMeetings(){
+  const rows=filterMeetings(S.mt);
+  return `<div class="page-head">
+    <div><h1>${esc(t('meetings'))}</h1><p>${esc(t('showing'))} ${rows.length} ${esc(t('results'))}</p></div>
+    <div class="right">${canManage()?`<button class="btn primary" data-act="new-meeting">${svg(I.plus)}${esc(t('addMeeting'))}</button>`:''}</div>
+  </div>
+  <div class="filters">
+    <select class="sel" data-mt="range"><option value="">${esc(t('all'))} · ${esc(t('date'))}</option>
+      <option value="7" ${S.mt.range==='7'?'selected':''}>${esc(t('inDays').replace('{n}',7))}</option>
+      <option value="30" ${S.mt.range==='30'?'selected':''}>${esc(t('inDays').replace('{n}',30))}</option>
+      <option value="-1" ${S.mt.range==='-1'?'selected':''}>${esc(t('yesterday'))} ↤</option></select>
+    <select class="sel" data-mt="kind"><option value="">${esc(t('all'))} · ${esc(t('kind'))}</option>
+      ${KINDS.map(k=>`<option value="${k}" ${S.mt.kind===k?'selected':''}>${esc(t(k))}</option>`).join('')}</select>
+    <select class="sel" data-mt="status"><option value="">${esc(t('all'))} · ${esc(t('status'))}</option>
+      ${STATUSES.map(s=>`<option value="${s}" ${S.mt.status===s?'selected':''}>${esc(t(s))}</option>`).join('')}</select>
+    <select class="sel" data-mt="attendee"><option value="">${esc(t('all'))} · ${esc(t('attendees'))}</option>
+      ${DB.users.map(u=>`<option value="${u.id}" ${S.mt.attendee===u.id?'selected':''}>${esc(displayName(u))}</option>`).join('')}</select>
+    <select class="sel" data-mt="room"><option value="">${esc(t('all'))} · ${esc(t('room'))}</option>
+      ${ROOMS.map(r=>`<option value="${esc(r)}" ${S.mt.room===r?'selected':''}>${esc(r)}</option>`).join('')}</select>
+    <select class="sel" data-mt="program"><option value="">${esc(t('all'))} · ${esc(t('program'))}</option>
+      ${DB.programs.map(p=>`<option value="${p.id}" ${S.mt.program===p.id?'selected':''}>${esc(progLabel(p))}</option>`).join('')}</select>
+    <button class="btn ghost" data-act="reset-mt">${esc(t('reset'))}</button>
+  </div>
+  ${rows.length?`<div class="card tbl-wrap"><table><thead><tr>
+    <th>${esc(t('title'))}</th><th>${esc(t('date'))}</th><th>${esc(t('kind'))}</th>
+    <th>${esc(t('room'))}</th><th>${esc(t('attendees'))}</th><th>${esc(t('status'))}</th></tr></thead><tbody>
+    ${rows.map(m=>{const at=attendeesOf(m.id);return `<tr data-act="open-meeting" data-id="${m.id}">
+      <td><div class="ttl">${esc(m.title)}</div><div class="sub">${agendaOf(m.id).length} ${esc(t('agenda'))}${m.series_id?` · ${esc(t('series'))}`:''}</div></td>
+      <td><div>${esc(fmtDate(m.start_at))}</div><div class="sub">${esc(fmtRange(m))}</div></td>
+      <td>${chip(m.kind,'chip-sm')}</td>
+      <td class="sub">${esc(m.room||'—')}</td>
+      <td><span class="who">${at.slice(0,3).map(a=>avatar(a.user_id)).join('')}${at.length>3?`<span class="sub">+${at.length-3}</span>`:''}</span></td>
+      <td>${chip(m.status)}${needsMinutes(m)?` <span class="chip c-orange chip-sm"><span class="glyph">!</span>${esc(t('minutes'))}</span>`:''}</td></tr>`;}).join('')}
+    </tbody></table></div>`
+   :`<div class="card">${emptyState('emptyMeetings','emptyMeetingsMsg',canManage()?`<button class="btn primary" data-act="new-meeting">${esc(t('addMeeting'))}</button>`:'')}</div>`}`;
+}
+
+/* ---------- 17. My meetings ---------- */
+function viewMine(){
+  const all=DB.meetings.filter(m=>isAttendee(m.id,S.user.id)||m.created_by===S.user.id);
+  const up=all.filter(m=>!isPast(m)&&m.status!=='cancelled').sort((a,b)=>new Date(a.start_at)-new Date(b.start_at));
+  const past=all.filter(isPast).sort((a,b)=>new Date(b.start_at)-new Date(a.start_at)).slice(0,12);
+  return `<div class="page-head"><div><h1>${esc(t('mine'))}</h1><p>${displayName(S.user)} · ${up.length} ${esc(t('results'))}</p></div></div>
+  ${all.length?`<div class="cols">
+    <section class="card panel"><div class="panel-h">${svg(I.cal)}<h3>${esc(t('next7'))}</h3><span class="chip c-slate chip-sm">${up.length}</span></div>
+      <div class="panel-b">${up.length?up.map(meetingRow).join(''):`<div class="empty" style="padding:24px">${esc(t('noneYet'))}</div>`}</div></section>
+    <section class="card panel"><div class="panel-h">${svg(I.hist)}<h3>${esc(t('minutes'))}</h3></div>
+      <div class="panel-b">${past.length?past.map(meetingRow).join(''):`<div class="empty" style="padding:24px">${esc(t('noneYet'))}</div>`}</div></section>
+  </div>`:`<div class="card">${emptyState('emptyMine','emptyMineMsg')}</div>`}`;
+}
+
+/* ---------- 18. Minutes archive ---------- */
+function viewMinutes(){
+  const need=DB.meetings.filter(needsMinutes).sort((a,b)=>new Date(b.start_at)-new Date(a.start_at));
+  const done=DB.meetings.filter(m=>isPast(m)&&!needsMinutes(m)&&m.status!=='cancelled').sort((a,b)=>new Date(b.start_at)-new Date(a.start_at));
+  return `<div class="page-head"><div><h1>${esc(t('minutes'))}</h1><p>${esc(t('needMinutesHint'))}</p></div></div>
+  ${need.length?`<section class="card panel" style="margin-bottom:16px">
+    <div class="panel-h">${svg(I.alert)}<h3>${esc(t('needMinutes'))}</h3><span class="chip c-orange chip-sm">${need.length}</span></div>
+    <div class="panel-b">${need.map(meetingRow).join('')}</div></section>`:''}
+  <section class="card panel"><div class="panel-h">${svg(I.doc)}<h3>${esc(t('minutes'))}</h3><span class="chip c-slate chip-sm">${done.length}</span></div>
+    <div class="panel-b">${done.length?done.map(meetingRow).join(''):emptyState('emptyMeetings','emptyMeetingsMsg')}</div></section>`;
+}
+
+/* ---------- 19. Programmes ---------- */
+function viewPrograms(){
+  return `<div class="page-head"><div><h1>${esc(t('programs'))}</h1><p>${DB.programs.length} ${esc(t('results'))}</p></div>
+    <div class="right">${canManage()?`<button class="btn primary" data-act="new-program">${svg(I.plus)}${esc(t('addProgram'))}</button>`:''}</div></div>
+  <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(275px,1fr))">
+    ${DB.programs.map(p=>{
+      const ms=DB.meetings.filter(m=>m.program_id===p.id);
+      const up=ms.filter(m=>!isPast(m)&&m.status==='scheduled').length;
+      return `<div class="card" style="padding:15px">
+        <div style="display:flex;gap:8px;align-items:flex-start">
+          <div style="flex:1"><div style="font-weight:800;font-size:15px">${esc(progLabel(p))}</div>
+          ${p.client_name?`<div style="font-size:12px;color:var(--text-3);margin-top:2px">${esc(p.client_name)}</div>`:''}</div>
+          ${chip(p.status,'chip-sm')}</div>
+        ${p.description?`<p style="margin:9px 0 0;font-size:13px;color:var(--text-2)">${esc(p.description)}</p>`:''}
+        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+          <span class="chip c-blue chip-sm">${ms.length} ${esc(t('meetings'))}</span>
+          ${up?`<span class="chip c-green chip-sm">${up} ${esc(t('scheduled'))}</span>`:''}</div>
+        ${canManage()?`<div style="margin-top:12px;display:flex;gap:7px">
+          <button class="btn ghost" data-act="edit-program" data-id="${p.id}">${esc(t('edit'))}</button>
+          <button class="btn danger" data-act="del-program" data-id="${p.id}">${esc(t('delete'))}</button></div>`:''}
+      </div>`;}).join('')}
+  </div>`;
+}
+
+/* ---------- 20. Change log ---------- */
+function viewActivity(){
+  const rows=DB.activity_log.slice().sort((a,b)=>new Date(b.created_at)-new Date(a.created_at)).slice(0,120);
+  return `<div class="page-head"><div><h1>${esc(t('activity'))}</h1><p>${rows.length} ${esc(t('results'))}</p></div></div>
+  ${rows.length?`<div class="card" style="padding:16px 18px"><div class="tl">
+    ${rows.map(r=>{const m=byId('meetings',r.entity_id);return `<div class="tl-i">
+      <div class="a">${esc(displayName(byId('users',r.performed_by)))} ${esc(actionLabel(r.action))} — ${esc(m?m.title:r.details||'')}</div>
+      ${r.details&&m?`<div class="d">${esc(r.details)}</div>`:''}
+      <div class="t">${esc(fmtDT(r.created_at))}</div></div>`;}).join('')}
+  </div></div>`:`<div class="card">${emptyState('emptyActivity','noneYet')}</div>`}`;
+}
+
+/* ---------- 21. Settings ---------- */
+function viewSettings(){
+  const pr=S.prefs;
+  const row=(k,on,label)=>`<label class="check ${on?'on':''}" style="width:100%;justify-content:flex-start">
+    <input type="checkbox" data-pref="${k}" ${on?'checked':''}>${esc(t(label))}</label>`;
+  return `<div class="page-head"><div><h1>${esc(t('settings'))}</h1><p>${esc(t('org'))}</p></div>
+    <div class="right">${canManage()?`<button class="btn primary" data-act="new-user">${svg(I.plus)}${esc(t('addUser'))}</button>`:''}</div></div>
+  <div class="callout info" style="margin-bottom:16px">${svg(I.alert)}<span>${esc(t('tasksNote'))}</span></div>
+  <section class="card panel" style="margin-bottom:16px">
+    <div class="panel-h">${svg(I.user)}<h3>${esc(t('myProfile'))}</h3></div>
+    <div class="panel-b" style="padding:14px;display:flex;align-items:center;gap:13px;flex-wrap:wrap">
+      <span class="avatar" style="width:44px;height:44px;font-size:15px">${esc(initials(displayName(S.user)))}</span>
+      <div style="flex:1;min-width:150px">
+        <div style="font-weight:800;font-size:15px">${esc(displayName(S.user))}</div>
+        <div style="font-size:12.5px;color:var(--text-3)">${esc(S.user.email)} · ${esc(t(S.user.role))}</div>
+      </div>
+      <button class="btn primary" data-act="edit-profile" data-id="${S.user.id}">${esc(t('editName'))}</button>
+    </div>
+  </section>
+  <div class="cols">
+    <section class="card panel">
+      <div class="panel-h">${svg(I.user)}<h3>${esc(t('team'))}</h3><span class="chip c-slate chip-sm">${DB.users.length}</span></div>
+      <div class="tbl-wrap"><table><thead><tr><th>${esc(t('title'))}</th><th>${esc(t('email'))}</th><th>${esc(t('role'))}</th><th>${esc(t('active_'))}</th></tr></thead>
+      <tbody>${DB.users.map(u=>`<tr style="cursor:default">
+        <td><span class="who">${avatar(u.id)}<span class="ttl">${esc(displayName(u))}</span></span></td>
+        <td class="sub">${esc(u.email)}</td>
+        <td>${canManage()?`<select class="sel" data-role="${u.id}">${ROLES.map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${esc(t(r))}</option>`).join('')}</select>`:esc(t(u.role))}</td>
+        <td>${u.active?chip('held','chip-sm'):chip('cancelled','chip-sm')}
+          ${canManage()?`<button class="btn ghost" style="padding:2px 8px;font-size:11.5px;margin-inline-start:6px"
+            data-act="edit-profile" data-id="${u.id}">${esc(t('editName'))}</button>`:''}</td></tr>`).join('')}</tbody></table></div>
+    </section>
+    <div style="display:grid;gap:16px">
+      <section class="card panel"><div class="panel-h">${svg(I.alert)}<h3>${esc(t('notifPrefs'))}</h3></div>
+        <div class="panel-b" style="display:grid;gap:7px;padding:14px">
+          ${row('reminder',pr.reminder,'prefReminder')}${row('minutesAlert',pr.minutesAlert,'prefMinutes')}${row('changes',pr.changes,'prefChanges')}
+        </div></section>
+      <section class="card panel"><div class="panel-h">${svg(I.download)}<h3>${esc(t('appSection'))}</h3></div>
+        <div class="panel-b" style="padding:14px">
+          ${S.installed
+            ? `<div class="callout info" style="margin-bottom:11px">${svg(I.check)}<span>${esc(t('installed'))}</span></div>`
+            : `<p style="margin:0 0 11px;font-size:13px;color:var(--text-2)">${esc(t('installHint'))}</p>
+               ${S.canInstall
+                 ? `<button class="btn gold" data-act="install" style="width:100%;justify-content:center">${svg(I.download)}${esc(t('install'))}</button>`
+                 : `<div class="callout info">${svg(I.alert)}<span>${esc(t('installIOS'))}</span></div>`}`}
+          <dl class="kv" style="margin-top:13px">
+            <dt>${esc(t('storage'))}</dt><dd>${S.mode==='live'?esc(t('storageCloud')):esc(t('storageLocal'))}</dd>
+            <dt>${esc(t('status'))}</dt><dd>${navigator.onLine?esc(t('onlineL')):esc(t('offline'))}</dd>
+          </dl>
+          ${S.mode==='live'?'':`<button class="btn danger" style="margin-top:11px;width:100%;justify-content:center" data-act="reset-data">${esc(t('resetData'))}</button>`}
+        </div></section>
+      <section class="card panel"><div class="panel-h">${svg(I.gear)}<h3>${esc(t('orgDefaults'))}</h3></div>
+        <div class="panel-b" style="padding:14px"><dl class="kv">
+          <dt>${esc(t('tz'))}</dt><dd>${esc(pr.tz)}</dd>
+          <dt>${esc(t('date'))}</dt><dd>dd/mm/yy</dd>
+          <dt>${esc(t('defaultDur'))}</dt><dd>${pr.defaultDur} ${esc(t('mShort'))}</dd>
+          <dt>${esc(t('rooms'))}</dt><dd>${ROOMS.map(r=>esc(r)).join('، ')}</dd>
+          <dt>${esc(t('language'))}</dt><dd>${LANG==='ar'?'العربية':'English'}</dd>
+          <dt>${esc(t('theme'))}</dt><dd>${document.documentElement.dataset.theme==='dark'?t('dark'):t('light')}</dd>
+          <dt>${esc(t('dataMode'))}</dt><dd>${S.mode==='live'?esc(t('modeLive')):esc(t('modeDemo'))}</dd>
+        </dl></div></section>
+    </div>
+  </div>`;
+}
+
+/* ---------- 22. Search ---------- */
+function viewSearch(){
+  const q=S.query.trim().toLowerCase(), hit=s=>String(s||'').toLowerCase().includes(q);
+  const ms=DB.meetings.filter(m=>hit(m.title)||hit(m.description)||hit(m.notes)||hit(m.decisions)||hit(m.guests)||hit(m.room)
+    ||agendaOf(m.id).some(a=>hit(a.topic)||hit(a.notes))||followUpsOf(m.id).some(f=>hit(f.text)));
+  const ps=DB.programs.filter(p=>hit(p.name)||hit(p.name_en)||hit(p.client_name)||hit(p.description));
+  if(!ms.length&&!ps.length) return `<div class="page-head"><div><h1>${esc(t('searchResults').replace('{q}',S.query))}</h1></div></div>
+    <div class="card">${emptyState('emptySearch','emptySearchMsg')}</div>`;
+  return `<div class="page-head"><div><h1>${esc(t('searchResults').replace('{q}',S.query))}</h1>
+    <p>${ms.length+ps.length} ${esc(t('results'))}</p></div></div>
+    ${ms.length?`<section class="card panel" style="margin-bottom:16px"><div class="panel-h">${svg(I.cal)}<h3>${esc(t('meetings'))}</h3>
+      <span class="chip c-slate chip-sm">${ms.length}</span></div><div class="panel-b">${ms.map(meetingRow).join('')}</div></section>`:''}
+    ${ps.length?`<section class="card panel"><div class="panel-h">${svg(I.folder)}<h3>${esc(t('programs'))}</h3></div>
+      <div class="panel-b" style="padding:12px">${ps.map(p=>`<div style="padding:8px 10px"><b>${esc(progLabel(p))}</b>
+      <div style="font-size:12px;color:var(--text-2)">${esc(p.description||'')}</div></div>`).join('')}</div></section>`:''}`;
+}
+
+/* ---------- 23. Main render ---------- */
+const VIEWS={dashboard:viewDashboard,calendar:viewCalendar,mine:viewMine,meetings:viewMeetings,
+  minutes:viewMinutes,programs:viewPrograms,activity:viewActivity,settings:viewSettings};
+let lastPainted=null;
+function render(){
+  if(!S.user) return;
+  renderNav(); renderTabbar();
+  const page=$('#page');
+  const key = S.query.trim() ? 'search' : S.view;
+  page.innerHTML = S.query.trim()?viewSearch():(VIEWS[S.view]||viewDashboard)();
+  /* Animate on navigation only — a realtime patch or a filter change
+     repaints the same view and should stay still. */
+  if(key!==lastPainted){
+    lastPainted=key;
+    page.classList.remove('enter');
+    void page.offsetWidth;               // restart the animation
+    page.classList.add('enter');
+    clearTimeout(render._t);
+    render._t=setTimeout(()=>page.classList.remove('enter'),800);
+  }
+  updateBell(); updateLivePill();
+}
+</script>
+<script>
+/* ---------- 24. Toast ---------- */
+function toast(msg,kind=''){
+  const el=document.createElement('div'); el.className='toast '+kind; el.textContent=msg;
+  $('#toasts').appendChild(el); setTimeout(()=>{el.style.opacity='0';el.style.transform='translateY(8px)';},2600);
+  setTimeout(()=>el.remove(),3000);
+}
+
+/* ---------- 25. Drawer ---------- */
+function closeDrawer(){ S.openMeetingId=null; $('#drawer').classList.remove('on'); $('#scrim').classList.remove('on'); }
+function openDrawer(html){
+  const d=$('#drawer'); d.innerHTML=html; d.classList.add('on'); $('#scrim').classList.add('on');
+  const b=d.querySelector('.dr-b'); if(b) b.scrollTop=0;
+}
+function historyFor(id){
+  const rows=DB.activity_log.filter(a=>a.entity_id===id).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  if(!rows.length) return `<p style="color:var(--text-3);font-size:13px;margin:0">${esc(t('emptyActivity'))}</p>`;
+  return `<div class="tl">${rows.map(r=>`<div class="tl-i">
+    <div class="a">${esc(displayName(byId('users',r.performed_by)))} ${esc(actionLabel(r.action))}</div>
+    ${r.details?`<div class="d">${esc(r.details)}</div>`:''}
+    <div class="t">${esc(fmtDT(r.created_at))}</div></div>`).join('')}</div>`;
+}
+
+/* Rebuild an open drawer in place, keeping the reading position, so a
+   live update doesn't yank the panel back to the top. */
+function reopenMeetingQuietly(id){
+  const body=$('#drawer .dr-b');
+  const y=body?body.scrollTop:0;
+  openMeeting(id);
+  const b2=$('#drawer .dr-b'); if(b2) b2.scrollTop=y;
+}
+function updateLivePill(){
+  const pill=$('#live-pill'); if(!pill) return;
+  pill.classList.toggle('on', S.mode==='live' && S.rtOn);
+  pill.title = t('liveOn');
+  pill.querySelector('span').textContent = t('live');
+}
+
+function openMeeting(id){
+  const m=byId('meetings',id); if(!m) return;
+  S.openMeetingId=id;
+  const ag=agendaOf(id), at=attendeesOf(id), fu=followUpsOf(id);
+  const prog=progLabel(byId('programs',m.program_id));
+  const conf=findConflicts({start_at:m.start_at,end_at:m.end_at,room:m.room,attendees:at.map(a=>a.user_id)},m.id);
+  const hasMinutes=(m.notes||'').trim()||(m.decisions||'').trim();
+  openDrawer(
+   `<div class="dr-h"><div style="min-width:0"><h2>${esc(m.title)}</h2>
+      <div class="sub">${chip(m.kind,'chip-sm')}${chip(m.status,'chip-sm')}
+        <span>${esc(fmtDate(m.start_at))} · ${esc(fmtRange(m))}</span>
+        ${m.series_id?`<span class="chip c-slate chip-sm"><span class="glyph">⟳</span>${esc(t('series'))}</span>`:''}
+        ${prog?`<span class="chip c-slate chip-sm">${esc(prog)}</span>`:''}</div></div>
+      <button class="icon-btn x" data-act="close-drawer" aria-label="${esc(t('close'))}">${svg(I.x)}</button></div>
+    <div class="dr-b">
+      ${conf.length?`<div class="callout warn" style="margin-bottom:16px">${svg(I.alert)}<span>${esc(t('conflictsFound'))}: ${
+        conf.map(c=>esc(c.type==='room'
+          ? t('conflictRoom').replace('{x}',c.meeting.title)
+          : t('conflictPerson').replace('{p}',displayName(byId('users',c.user_id))).replace('{x}',c.meeting.title))).join(' · ')}</span></div>`:''}
+      ${needsMinutes(m)?`<div class="callout warn" style="margin-bottom:16px">${svg(I.doc)}<span>${esc(t('emptyMinutes'))}</span></div>`:''}
+
+      <div class="sec"><h4>${esc(t('description'))}</h4><div class="note">${esc(m.description||t('noneYet'))}</div></div>
+
+      <div class="sec"><h4>${esc(t('agenda'))} (${ag.length})</h4>
+        ${ag.length?`<ol class="agenda">${ag.map(a=>`<li><div class="tp">${esc(a.topic)}</div>${a.notes?`<div class="nt">${esc(a.notes)}</div>`:''}</li>`).join('')}</ol>`
+        :`<p style="color:var(--text-3);font-size:13px;margin:0">${esc(t('noneYet'))}</p>`}</div>
+
+      <div class="sec"><h4>${esc(t('attendees'))} (${at.length})</h4>
+        <div class="people">${at.map(a=>`<span class="person">${avatar(a.user_id)}${esc(displayName(byId('users',a.user_id)))} ${chip(a.attendance_status,'chip-sm')}</span>`).join('')
+          ||`<span style="color:var(--text-3);font-size:13px">${esc(t('noneYet'))}</span>`}</div>
+        ${m.guests?`<div class="note" style="margin-top:9px"><b style="font-size:12px;color:var(--text-2)">${esc(t('guests'))}</b><br>${esc(m.guests)}</div>`:''}</div>
+
+      <div class="sec"><h4>${esc(t('notes'))}</h4><div class="note">${esc(m.notes||t('emptyMinutes'))}</div></div>
+      <div class="sec"><h4>${esc(t('decisions'))}</h4><div class="note">${esc(m.decisions||t('noneYet'))}</div></div>
+
+      <div class="sec"><h4>${esc(t('followUps'))} (${fu.length})
+        ${fu.length?`<button class="btn ghost" style="padding:3px 9px;font-size:12px" data-act="copy-fu" data-id="${id}">${svg(I.copy)}${esc(t('copyFollowUps'))}</button>`:''}</h4>
+        ${fu.length?fu.map(f=>`<div class="fu"><span class="bx"></span><span class="tx">${esc(f.text)}
+          <span class="mt"><span>${avatar(f.owner_id)} ${esc(displayName(byId('users',f.owner_id)))}</span>
+          ${f.due_at?`<span>${svg(I.clock)}${esc(fmtDate(f.due_at))}</span>`:''}</span></span></div>`).join('')
+          :`<p style="color:var(--text-3);font-size:13px;margin:0">${esc(t('noneYet'))}</p>`}
+        <div class="callout info" style="margin-top:9px">${svg(I.alert)}<span>${esc(t('tasksNote'))}</span></div></div>
+
+      <div class="sec"><h4>${esc(t('title'))}</h4><dl class="kv">
+        <dt>${esc(t('room'))}</dt><dd>${esc(m.room||'—')}</dd>
+        <dt>${esc(t('location'))}</dt><dd>${esc(m.location_or_link||'—')}</dd>
+        <dt>${esc(t('durationL'))}</dt><dd>${esc(duration(m)||'—')}</dd>
+        <dt>${esc(t('organizer'))}</dt><dd>${whoCell(m.created_by)}</dd>
+      </dl></div>
+
+      <div class="sec"><h4>${esc(t('history'))}</h4>${historyFor(id)}</div>
+    </div>
+    ${canEditMeeting(m)?`<div class="dr-f">
+      <button class="btn primary" data-act="edit-meeting" data-id="${id}">${esc(t('edit'))}</button>
+      <button class="btn gold" data-act="minutes" data-id="${id}">${svg(I.doc)}${esc(hasMinutes?t('minutes'):t('writeMinutes'))}</button>
+      ${m.status==='scheduled'?`<button class="btn ghost" data-act="set-status" data-id="${id}" data-s="held">${esc(t('markHeld'))}</button>
+        <button class="btn ghost" data-act="set-status" data-id="${id}" data-s="postponed">${esc(t('postponed'))}</button>
+        <button class="btn ghost" data-act="set-status" data-id="${id}" data-s="cancelled">${esc(t('cancelled'))}</button>`:''}
+      <button class="btn danger" data-act="del-meeting" data-id="${id}">${esc(t('delete'))}</button></div>`:''}`);
+}
+
+/* ---------- 26. Modal ---------- */
+function closeModal(){
+  $('#modal-host').innerHTML='';
+  /* A live update arrived while the form was open — apply it now. */
+  if(RT.dirty) setTimeout(()=>RT.flush(),30);
+}
+function modal(title,body,footer,wide){
+  $('#modal-host').innerHTML=`<div class="scrim on" data-act="close-modal"></div>
+    <div class="modal"><div class="mbox" role="dialog" aria-modal="true" ${wide?'style="width:min(760px,100%)"':''}>
+      <header><h3>${esc(title)}</h3><button class="icon-btn" style="margin-inline-start:auto" data-act="close-modal">${svg(I.x)}</button></header>
+      <div class="mb">${body}</div><footer>${footer}</footer></div></div>`;
+  setTimeout(()=>$('#modal-host input,#modal-host textarea,#modal-host select')?.focus(),60);
+}
+const fieldErr = id => `<div class="err hidden" id="${id}">${svg(I.alert)}<span></span></div>`;
+function showErr(id,msg){ const e=$('#'+id); if(!e) return; e.classList.remove('hidden'); e.querySelector('span').textContent=msg; }
+function clearErrs(){ $$('#modal-host .err').forEach(e=>e.classList.add('hidden')); }
+
+/* ---------- 27. Meeting form ---------- */
+let pendingSave=null;   // holds a draft the user chose to save despite a clash
+function meetingForm(id,prefill){
+  const m = id?byId('meetings',id):Object.assign({title:'',kind:'internal',start_at:dayAt(1,10,0),end_at:dayAt(1,11,0),
+    room:ROOMS[0],location_or_link:'',description:'',status:'scheduled',program_id:null,guests:'',notes:'',decisions:''},prefill||{});
+  const ag = id?agendaOf(id):[{topic:'',notes:''}];
+  const at = id?attendeesOf(id).map(a=>a.user_id):[S.user.id];
+  modal(id?t('editMeeting'):t('newMeeting'),
+   `<div class="fgrid">
+      <div class="fg full"><label>${esc(t('title'))} <span class="req">*</span></label>
+        <input id="f-title" value="${esc(m.title)}">${fieldErr('e-title')}</div>
+      <div class="fg"><label>${esc(t('kind'))}</label><select id="f-kind">
+        ${KINDS.map(k=>`<option value="${k}" ${m.kind===k?'selected':''}>${esc(t(k))}</option>`).join('')}</select></div>
+      <div class="fg"><label>${esc(t('status'))}</label><select id="f-status">
+        ${STATUSES.map(s=>`<option value="${s}" ${m.status===s?'selected':''}>${esc(t(s))}</option>`).join('')}</select></div>
+      <div class="fg"><label>${esc(t('startTime'))} <span class="req">*</span></label>
+        <input type="datetime-local" id="f-start" value="${toLocalInput(m.start_at)}">${fieldErr('e-start')}</div>
+      <div class="fg"><label>${esc(t('endTime'))}</label>
+        <input type="datetime-local" id="f-end" value="${toLocalInput(m.end_at)}">${fieldErr('e-end')}</div>
+      <div class="fg"><label>${esc(t('room'))}</label><select id="f-room"><option value="">${esc(t('none'))}</option>
+        ${ROOMS.map(r=>`<option value="${esc(r)}" ${m.room===r?'selected':''}>${esc(r)}</option>`).join('')}</select></div>
+      <div class="fg"><label>${esc(t('location'))}</label><input id="f-loc" value="${esc(m.location_or_link||'')}"
+        placeholder="${esc(t('optional'))}"></div>
+      <div class="fg"><label>${esc(t('program'))}</label><select id="f-prog"><option value="">${esc(t('none'))}</option>
+        ${DB.programs.map(p=>`<option value="${p.id}" ${m.program_id===p.id?'selected':''}>${esc(progLabel(p))}</option>`).join('')}</select></div>
+      ${id?'':`<div class="fg"><label>${esc(t('repeat'))}</label><select id="f-rep">
+        ${REPEATS.map(r=>`<option value="${r}">${esc(t(r))}</option>`).join('')}</select></div>
+      <div class="fg"><label>${esc(t('repeatCount'))}</label><input type="number" id="f-repn" value="4" min="2" max="24"></div>`}
+      <div class="fg full"><label>${esc(t('description'))}</label><textarea id="f-desc">${esc(m.description||'')}</textarea></div>
+      <div class="fg full"><label>${esc(t('attendees'))}</label>
+        <div class="checks">${DB.users.map(u=>`<label class="check ${at.includes(u.id)?'on':''}">
+          <input type="checkbox" class="f-at" value="${u.id}" ${at.includes(u.id)?'checked':''}>${esc(displayName(u))}</label>`).join('')}</div></div>
+      <div class="fg full"><label>${esc(t('guests'))}</label><input id="f-guests" value="${esc(m.guests||'')}" placeholder="${esc(t('optional'))}"></div>
+      <div class="fg full"><label>${esc(t('agenda'))}</label><div id="ag-rows">${ag.map((a,i)=>agRow(a,i)).join('')}</div>
+        <button class="btn ghost" style="margin-top:6px" data-act="ag-add">${svg(I.plus)}${esc(t('addTopic'))}</button></div>
+      <div class="fg full" id="conflict-box"></div>
+    </div>`,
+   `<button class="btn ghost" data-act="close-modal">${esc(t('cancel'))}</button>
+    <button class="btn primary" data-act="save-meeting" data-id="${id||''}">${esc(t('save'))}</button>`, true);
+}
+function agRow(a={topic:'',notes:''},i=0){
+  return `<div class="rep-row"><span class="h">${i+1}</span>
+    <div style="flex:1"><input class="ag-topic" value="${esc(a.topic||'')}" placeholder="${esc(t('topic'))}">
+    <input class="ag-notes" value="${esc(a.notes||'')}" placeholder="${esc(t('notes'))} (${esc(t('optional'))})" style="margin-top:6px"></div>
+    <button class="del" data-act="ag-del">${svg(I.trash)}</button></div>`;
+}
+function readMeetingForm(){
+  return { title:$('#f-title').value.trim(), kind:$('#f-kind').value, status:$('#f-status').value,
+    start_at:fromLocalInput($('#f-start').value), end_at:fromLocalInput($('#f-end').value),
+    room:$('#f-room').value||'', location_or_link:$('#f-loc').value.trim(),
+    program_id:$('#f-prog').value||null, description:$('#f-desc').value.trim(),
+    guests:$('#f-guests').value.trim(), attendees:$$('.f-at:checked').map(c=>c.value) };
+}
+function saveMeeting(id){
+  clearErrs();
+  const f=readMeetingForm();
+  let bad=false;
+  if(!f.title){ showErr('e-title',t('errTitle')); bad=true; }
+  if(!$('#f-start').value){ showErr('e-start',t('errStart')); bad=true; }
+  if(f.start_at&&f.end_at&&new Date(f.end_at)<new Date(f.start_at)){ showErr('e-end',t('errEnd')); bad=true; }
+  if(bad) return;
+
+  /* Clashes warn, they do not block — the manager decides. */
+  const conf = f.status==='scheduled' ? findConflicts(f,id) : [];
+  if(conf.length && pendingSave!==JSON.stringify([f.start_at,f.end_at,f.room])){
+    pendingSave=JSON.stringify([f.start_at,f.end_at,f.room]);
+    $('#conflict-box').innerHTML=`<div class="callout warn">${svg(I.alert)}<span><b>${esc(t('conflictsFound'))}</b><br>${
+      conf.map(c=>esc(c.type==='room'
+        ? t('conflictRoom').replace('{x}',`${c.meeting.title} — ${fmtRange(c.meeting)}`)
+        : t('conflictPerson').replace('{p}',displayName(byId('users',c.user_id))).replace('{x}',`${c.meeting.title} — ${fmtRange(c.meeting)}`))).join('<br>')
+      }<br><br>${esc(t('saveAnyway'))} — ${esc(t('save'))}</span></div>`;
+    const cb=$('#conflict-box'); if(cb.scrollIntoView) cb.scrollIntoView({block:'nearest'});
+    return;
+  }
+  pendingSave=null;
+
+  const {attendees,...patch}=f;
+  let created=[];
+  if(id){
+    const old=byId('meetings',id);
+    Store.update('meetings',id,patch);
+    if(old.start_at!==patch.start_at||old.end_at!==patch.end_at) logAct(id,'time_changed',`${fmtDT(old.start_at)} → ${fmtDT(patch.start_at)}`);
+    if(old.status!==patch.status) logAct(id,'status_changed',`${t(old.status)} → ${t(patch.status)}`);
+    logAct(id,'edited','');
+    created=[byId('meetings',id)];
+  } else {
+    const rep=$('#f-rep')?$('#f-rep').value:'none_';
+    const n = rep==='none_' ? 1 : Math.min(24,Math.max(2,Number($('#f-repn').value)||2));
+    const series = rep==='none_' ? null : 'sr-'+uid();
+    const stepDays = {weekly:7,biweekly:14}[rep];
+    for(let i=0;i<n;i++){
+      const shift = d => { if(!d) return null; const x=new Date(d);
+        if(rep==='monthly') x.setMonth(x.getMonth()+i); else if(stepDays) x.setDate(x.getDate()+stepDays*i); return x.toISOString(); };
+      const row=Store.insert('meetings',{...patch,start_at:shift(patch.start_at),end_at:shift(patch.end_at),
+        notes:'',decisions:'',series_id:series,created_by:S.user.id});
+      logAct(row.id,'created',row.title);
+      created.push(row);
+    }
+  }
+  /* agenda + attendees are rewritten on the primary record; copies share the agenda */
+  created.forEach((row,idx)=>{
+    agendaOf(row.id).forEach(a=>Store.remove('agenda_items',a.id));
+    $$('#ag-rows .rep-row').forEach((r,i)=>{
+      const topic=r.querySelector('.ag-topic').value.trim(); if(!topic) return;
+      Store.insert('agenda_items',{meeting_id:row.id,topic,sort_order:i+1,notes:r.querySelector('.ag-notes').value.trim()});
+    });
+    attendeesOf(row.id).forEach(a=>{ if(!attendees.includes(a.user_id)) Store.remove('meeting_attendees',a.id); });
+    attendees.forEach(u=>{ if(!isAttendee(row.id,u)) Store.insert('meeting_attendees',{meeting_id:row.id,user_id:u,attendance_status:'invited'}); });
+  });
+  closeModal(); render(); toast(t('savedOk'));
+  openMeeting(created[0].id);
+}
+
+/* ---------- 28. Minutes editor ---------- */
+function minutesForm(id){
+  const m=byId('meetings',id), ag=agendaOf(id), fu=followUpsOf(id);
+  modal(t('writeMinutes')+' — '+m.title,
+   `<div class="fgrid">
+      <div class="fg full"><label>${esc(t('attendees'))}</label>
+        <div class="checks">${attendeesOf(id).map(a=>`<label class="check">
+          <select class="sel mn-at" data-at="${a.id}" style="border:0;background:transparent;padding:0 4px">
+            ${ATTEND.map(s=>`<option value="${s}" ${a.attendance_status===s?'selected':''}>${esc(t(s))}</option>`).join('')}
+          </select><b style="font-size:12.5px">${esc(displayName(byId('users',a.user_id)))}</b></label>`).join('')}</div></div>
+      ${ag.length?`<div class="fg full"><label>${esc(t('agenda'))}</label>
+        ${ag.map((a,i)=>`<div class="fg" style="margin-bottom:8px"><label style="font-weight:600;color:var(--text)">${i+1}. ${esc(a.topic)}</label>
+          <textarea class="mn-ag" data-ag="${a.id}" style="min-height:56px">${esc(a.notes||'')}</textarea></div>`).join('')}</div>`:''}
+      <div class="fg full"><label>${esc(t('notes'))}</label><textarea id="mn-notes" style="min-height:96px">${esc(m.notes||'')}</textarea></div>
+      <div class="fg full"><label>${esc(t('decisions'))}</label><textarea id="mn-dec" style="min-height:76px">${esc(m.decisions||'')}</textarea></div>
+      <div class="fg full"><label>${esc(t('followUps'))}</label><div id="fu-rows">
+        ${(fu.length?fu:[{text:'',owner_id:'',due_at:''}]).map(fuRow).join('')}</div>
+        <button class="btn ghost" style="margin-top:6px" data-act="fu-add">${svg(I.plus)}${esc(t('addFollowUp'))}</button>
+        <div class="hint">${esc(t('tasksNote'))}</div></div>
+    </div>`,
+   `<button class="btn ghost" data-act="close-modal">${esc(t('cancel'))}</button>
+    <button class="btn gold" data-act="save-minutes" data-id="${id}">${esc(t('save'))}</button>`, true);
+}
+function fuRow(f={text:'',owner_id:'',due_at:''}){
+  return `<div class="rep-row"><span class="h">•</span>
+    <div style="flex:1;display:grid;grid-template-columns:1fr;gap:6px">
+      <input class="fu-text" value="${esc(f.text||'')}" placeholder="${esc(t('followUps'))}">
+      <div style="display:flex;gap:6px">
+        <select class="fu-owner" style="flex:1;background:var(--input);border:1px solid var(--input-line);border-radius:11px;padding:9px 11px">
+          <option value="">${esc(t('owner'))}</option>
+          ${DB.users.map(u=>`<option value="${u.id}" ${f.owner_id===u.id?'selected':''}>${esc(displayName(u))}</option>`).join('')}</select>
+        <input type="date" class="fu-due" value="${f.due_at?toLocalInput(f.due_at).slice(0,10):''}"
+          style="flex:1;background:var(--input);border:1px solid var(--input-line);border-radius:11px;padding:9px 11px"></div>
+    </div><button class="del" data-act="fu-del">${svg(I.trash)}</button></div>`;
+}
+function saveMinutes(id){
+  const m=byId('meetings',id);
+  const had=(m.notes||'').trim()||(m.decisions||'').trim();
+  Store.update('meetings',id,{notes:$('#mn-notes').value.trim(),decisions:$('#mn-dec').value.trim(),
+    status: m.status==='scheduled' && isPast(m) ? 'held' : m.status});
+  $$('.mn-ag').forEach(el=>Store.update('agenda_items',el.dataset.ag,{notes:el.value.trim()}));
+  $$('.mn-at').forEach(el=>Store.update('meeting_attendees',el.dataset.at,{attendance_status:el.value}));
+  followUpsOf(id).forEach(f=>Store.remove('follow_ups',f.id));
+  $$('#fu-rows .rep-row').forEach(r=>{
+    const text=r.querySelector('.fu-text').value.trim(); if(!text) return;
+    const due=r.querySelector('.fu-due').value;
+    Store.insert('follow_ups',{meeting_id:id,text,owner_id:r.querySelector('.fu-owner').value||null,
+      due_at:due?new Date(due+'T17:00').toISOString():null});
+  });
+  if(!had) logAct(id,'minutes_recorded','');
+  else logAct(id,'edited',t('minutes'));
+  closeModal(); render(); toast(t('savedOk')); openMeeting(id);
+}
+function copyFollowUps(id){
+  const m=byId('meetings',id);
+  const lines=followUpsOf(id).map(f=>`- ${f.text} — ${displayName(byId('users',f.owner_id))}${f.due_at?' — '+fmtDate(f.due_at):''}`);
+  const text=`${m.title} (${fmtDate(m.start_at)})\n${lines.join('\n')}`;
+  const done=()=>toast(t('copied'));
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done,done);
+  else done();
+}
+
+/* ---------- 28b. Display name ---------- */
+function profileForm(id,welcome){
+  const u=byId('users',id); if(!u) return;
+  if(u.id!==S.user.id && !canManage()) return toast(t('notYou'),'bad');
+  modal(welcome?t('welcomeTitle'):t('editName'),
+   `${welcome?`<p style="margin:0 0 14px;font-size:14px;color:var(--text-2)">${esc(t('welcomeMsg'))}</p>`:''}
+    <div class="fgrid">
+      <div class="fg full"><label>${esc(t('nameAr'))} <span class="req">*</span></label>
+        <input id="pf-name" value="${esc(u.name||'')}" placeholder="${esc(t('nameAr'))}">${fieldErr('e-name')}
+        <div class="hint">${esc(t('nameHint'))}</div></div>
+      <div class="fg full"><label>${esc(t('nameEn'))}</label>
+        <input id="pf-name-en" value="${esc(u.name_en||'')}" placeholder="${esc(t('nameEn'))}" dir="ltr"></div>
+    </div>`,
+   `${welcome?'':`<button class="btn ghost" data-act="close-modal">${esc(t('cancel'))}</button>`}
+    <button class="btn primary" data-act="save-profile" data-id="${id}">${esc(t('save'))}</button>`);
+}
+function saveProfile(id){
+  clearErrs();
+  const name=$('#pf-name').value.trim();
+  if(!name){ showErr('e-name',t('errTitle')); return; }
+  Store.update('users',id,{name,name_en:$('#pf-name-en').value.trim()});
+  if(id===S.user.id) S.user=byId('users',id);
+  closeModal(); render(); toast(t('savedName'));
+}
+/* A name auto-filled from the email address isn't a name — ask once. */
+function looksAutoNamed(u){
+  if(!u||!u.email) return false;
+  const local=String(u.email).split('@')[0].toLowerCase();
+  return !u.name || String(u.name).trim().toLowerCase()===local;
+}
+
+/* ---------- 29. Programme + user forms ---------- */
+function programForm(id){
+  const p=id?byId('programs',id):{name:'',name_en:'',client_name:'',description:'',status:'active'};
+  modal(id?t('edit'):t('addProgram'),
+   `<div class="fgrid">
+      <div class="fg"><label>${esc(t('title'))} (AR) <span class="req">*</span></label><input id="f-name" value="${esc(p.name)}">${fieldErr('e-title')}</div>
+      <div class="fg"><label>${esc(t('title'))} (EN)</label><input id="f-name-en" value="${esc(p.name_en||'')}"></div>
+      <div class="fg"><label>${esc(t('client'))}</label><input id="f-client" value="${esc(p.client_name||'')}"></div>
+      <div class="fg"><label>${esc(t('status'))}</label><select id="f-status">
+        ${['active','on_hold','completed','archived'].map(s=>`<option value="${s}" ${p.status===s?'selected':''}>${esc(t(s))}</option>`).join('')}</select></div>
+      <div class="fg full"><label>${esc(t('description'))}</label><textarea id="f-desc">${esc(p.description||'')}</textarea></div>
+    </div>`,
+   `<button class="btn ghost" data-act="close-modal">${esc(t('cancel'))}</button>
+    <button class="btn primary" data-act="save-program" data-id="${id||''}">${esc(t('save'))}</button>`);
+}
+function saveProgram(id){
+  clearErrs(); const name=$('#f-name').value.trim();
+  if(!name){ showErr('e-title',t('errTitle')); return; }
+  const patch={name,name_en:$('#f-name-en').value.trim(),client_name:$('#f-client').value.trim(),
+    description:$('#f-desc').value.trim(),status:$('#f-status').value};
+  id?Store.update('programs',id,patch):Store.insert('programs',patch);
+  closeModal(); render(); toast(t('savedOk'));
+}
+function userForm(){
+  modal(t('addUser'),
+   `<div class="fgrid">
+      <div class="fg"><label>${esc(t('title'))} (AR) <span class="req">*</span></label><input id="f-name">${fieldErr('e-title')}</div>
+      <div class="fg"><label>${esc(t('title'))} (EN)</label><input id="f-name-en"></div>
+      <div class="fg"><label>${esc(t('email'))} <span class="req">*</span></label><input id="f-email" type="email">${fieldErr('e-email')}</div>
+      <div class="fg"><label>${esc(t('role'))}</label><select id="f-role">${ROLES.map(r=>`<option value="${r}">${esc(t(r))}</option>`).join('')}</select></div>
+    </div>`,
+   `<button class="btn ghost" data-act="close-modal">${esc(t('cancel'))}</button>
+    <button class="btn primary" data-act="save-user">${esc(t('save'))}</button>`);
+}
+function saveUser(){
+  clearErrs(); const name=$('#f-name').value.trim(), email=$('#f-email').value.trim();
+  let bad=false; if(!name){showErr('e-title',t('errTitle'));bad=true;} if(!email){showErr('e-email',t('errTitle'));bad=true;}
+  if(bad) return;
+  Store.insert('users',{name,name_en:$('#f-name-en').value.trim(),email,role:$('#f-role').value,active:true});
+  closeModal(); render(); toast(t('savedOk'));
+}
+
+/* ---------- 30. Status + delete ---------- */
+function setStatus(id,status){
+  const m=byId('meetings',id);
+  Store.update('meetings',id,{status});
+  logAct(id,'status_changed',`${t(m.status)} → ${t(status)}`);
+  render(); openMeeting(id); toast(t('savedOk'));
+}
+function confirmDeleteMeeting(id){
+  const m=byId('meetings',id); if(!m) return;
+  const sibs = m.series_id ? DB.meetings.filter(x=>x.series_id===m.series_id) : [];
+  modal(t('confirmDelete'),
+    `<p style="margin:0;font-size:14px;line-height:1.7">${esc(t('confirmDeleteMsg').replace('{x}',m.title))}</p>`,
+    `<button class="btn ghost" data-act="close-modal">${esc(t('cancel'))}</button>
+     ${sibs.length>1?`<button class="btn danger" data-act="do-delete" data-id="${id}" data-series="1">${esc(t('deleteSeries'))} (${sibs.length})</button>`:''}
+     <button class="btn danger" data-act="do-delete" data-id="${id}">${sibs.length>1?esc(t('deleteOne')):esc(t('delete'))}</button>`);
+}
+function deleteMeeting(id,series){
+  const m=byId('meetings',id);
+  const targets = series && m.series_id ? DB.meetings.filter(x=>x.series_id===m.series_id) : [m];
+  targets.forEach(x=>{
+    agendaOf(x.id).forEach(a=>Store.remove('agenda_items',a.id));
+    attendeesOf(x.id).forEach(a=>Store.remove('meeting_attendees',a.id));
+    followUpsOf(x.id).forEach(f=>Store.remove('follow_ups',f.id));
+    logAct(x.id,'deleted',x.title);
+    Store.remove('meetings',x.id);
+  });
+  closeModal(); closeDrawer(); render(); toast(t('deletedOk'));
+}
+function confirmDeleteProgram(id){
+  const p=byId('programs',id); if(!p) return;
+  modal(t('confirmDelete'),
+    `<p style="margin:0;font-size:14px;line-height:1.7">${esc(t('confirmDeleteMsg').replace('{x}',progLabel(p)))}</p>`,
+    `<button class="btn ghost" data-act="close-modal">${esc(t('cancel'))}</button>
+     <button class="btn danger" data-act="do-delete-program" data-id="${id}">${esc(t('delete'))}</button>`);
+}
+
+/* ---------- 31. Notifications ---------- */
+function buildNotifications(){
+  const out=[], now=new Date(), pr=S.prefs;
+  DB.meetings.forEach(m=>{
+    const involved = isAttendee(m.id,S.user.id) || m.created_by===S.user.id || canManage();
+    if(!involved) return;
+    if(pr.reminder && m.status==='scheduled'){
+      const hrs=(new Date(m.start_at)-now)/3600000;
+      if(hrs>0&&hrs<=1) out.push({id:`m:${m.id}:1h`,cls:'c-orange',icon:I.clock,title:m.title,desc:t('nNow'),when:m.start_at,go:m.id,rank:0});
+      else if(hrs>1&&hrs<=24) out.push({id:`m:${m.id}:24h`,cls:'c-blue',icon:I.cal,title:m.title,desc:t('nSoon'),when:m.start_at,go:m.id,rank:2});
+    }
+    if(pr.minutesAlert && needsMinutes(m))
+      out.push({id:`m:${m.id}:min`,cls:'c-gold',icon:I.doc,title:m.title,desc:t('nNeedMinutes')+' · '+relative(m.start_at),when:m.start_at,go:m.id,rank:1});
+  });
+  if(pr.changes){
+    DB.activity_log.filter(a=>a.action==='time_changed' && (new Date()-new Date(a.created_at))<7*MS_DAY)
+      .forEach(a=>{ const m=byId('meetings',a.entity_id); if(!m) return;
+        if(!(isAttendee(m.id,S.user.id)||canManage())) return;
+        out.push({id:`m:${m.id}:chg:${a.id}`,cls:'c-slate',icon:I.repeat,title:m.title,desc:t('nChanged')+' · '+a.details,when:a.created_at,go:m.id,rank:3}); });
+  }
+  out.sort((a,b)=>a.rank-b.rank||new Date(a.when)-new Date(b.when));
+  return out;
+}
+function updateBell(){
+  const un=buildNotifications().filter(n=>!S.reads.has(n.id)).length;
+  const dot=$('#bell-n'); dot.textContent=un>99?'99+':un; dot.classList.toggle('hidden',un===0);
+}
+function togglePop(){
+  const host=$('#pop-host'); if(host.innerHTML){ host.innerHTML=''; return; }
+  const list=buildNotifications();
+  host.innerHTML=`<div class="pop"><h4>${svg(I.alert)}${esc(t('notifications'))}
+    ${list.length?`<button data-act="read-all">${esc(t('markAllRead'))}</button>`:''}</h4>
+    <div class="list">${list.length?list.map(n=>`<button class="nrow ${S.reads.has(n.id)?'':'un'}" data-act="open-notif" data-id="${n.go}" data-nid="${esc(n.id)}">
+      <span class="ic ${n.cls}">${svg(n.icon)}</span>
+      <span style="flex:1;min-width:0"><span class="t">${esc(n.title)}</span><span class="d">${esc(n.desc)}</span>
+      <span class="w">${esc(fmtDT(n.when))}</span></span></button>`).join('')
+    :`<div class="empty" style="padding:28px">${svg(I.check)}<h4>${esc(t('emptyNotif'))}</h4></div>`}</div></div>`;
+}
+
+/* ---------- 32. Language / theme / login ---------- */
+function setLang(l){
+  LANG=l; const h=document.documentElement; h.lang=l; h.dir=l==='ar'?'rtl':'ltr';
+  document.title=t('appName'); paintLogin();
+  if($('#app').classList.contains('on')) render();
+  $('#lang').textContent=l==='ar'?'EN':'ع';
+}
+function setTheme(th){
+  document.documentElement.dataset.theme=th;
+  $('#theme-i').innerHTML = th==='dark' ? I.sun : '<path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/>';
+  if(S.view==='settings'&&$('#app').classList.contains('on')) render();
+}
+function paintLogin(){
+  $('#lg-title').textContent=t('appName'); $('#lg-sub').textContent=t('org')+' · '+t('sideName');
+  $('#lg-email-l').textContent=t('email'); $('#lg-pass-l').textContent=t('password');
+  $('#lg-go').textContent=t('signIn');
+  const label = S.mode==='live' ? t('modeLive') : S.mode==='error' ? t('libErr') : t('modeDemo');
+  $('#lg-mode').innerHTML=`${esc(t('dbMode'))} <b>${esc(label)}</b>`;
+  const hint=$('#lg-hint');
+  hint.textContent = S.mode==='demo' ? t('demoHint') : '';
+  hint.classList.toggle('hidden', S.mode!=='demo');
+  $('#lg-lang').textContent = LANG==='ar' ? 'EN' : 'ع';
+  $('#lg-theme-i').innerHTML = document.documentElement.dataset.theme==='dark'
+    ? I.sun : '<path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/>';
+}
+function hideBoot(){
+  const b=$('#boot'); if(!b||b.classList.contains('out')) return;
+  b.classList.add('out'); setTimeout(()=>b.remove(),320);
+}
+function revealLogin(){ $('#login').classList.remove('hidden'); hideBoot(); }
+
+function signIn(user){
+  S.user=user; $('#login').classList.add('hidden'); $('#app').classList.add('on');
+  hideBoot();
+  S.view = location.hash.slice(1) in VIEWS ? location.hash.slice(1) : 'dashboard';
+  render();
+}
+function signOut(){
+  if(S.mode==='live'&&S.sb){ RT.stop(); try{ S.sb.auth.signOut(); }catch(e){} }
+  S.user=null; $('#app').classList.remove('on'); revealLogin();
+  $('#lg-pass').value=''; closeDrawer(); closeModal(); paintLogin();
+}
+
+/* ---------- 32b. Connection check ----------
+   Tests the URL and key directly with fetch, so it works even when the
+   Supabase library itself failed to load. Each check names one cause. */
+async function runDiagnostics(url,key){
+  const rows=[];
+  const add=(k,ok,msg,extra)=>rows.push({k,ok,msg,extra});
+
+  let valid=false;
+  try{ const u=new URL(url); valid = /^https?:$/.test(u.protocol) && !!u.hostname; }catch(e){}
+  add('cUrl', valid, valid?t('cOkUrl'):t('cBadUrl'), valid?url:'');
+  if(!valid) return rows;
+
+  const head={apikey:key, Authorization:'Bearer '+key};
+  let reached=false;
+  try{
+    const r=await fetch(url.replace(/\/+$/,'')+'/auth/v1/health',{headers:{apikey:key}});
+    reached=true;
+    add('cReach', true, t('cOkReach'), 'HTTP '+r.status);
+  }catch(e){
+    add('cReach', false, t('cBadReach'), e.message||'network error');
+    return rows;
+  }
+
+  let status=0, body='';
+  try{
+    const r=await fetch(url.replace(/\/+$/,'')+'/rest/v1/users?select=id&limit=1',{headers:head});
+    status=r.status; body=await r.text();
+  }catch(e){ add('cKey', false, t('cBadKey'), e.message); return rows; }
+
+  if(status===401||status===403) add('cKey', false, t('cBadKey'), 'HTTP '+status);
+  else add('cKey', true, t('cOkKey'), 'HTTP '+status);
+
+  if(status===404) add('cTables', false, t('cBadTables'), 'HTTP 404');
+  else if(status<400) add('cTables', true, t('cOkTables'), '');
+  else if(status!==401&&status!==403) add('cTables', false, t('cBadTables'), (body||'').slice(0,120));
+
+  add('cLib', !!window.supabase, window.supabase?t('cOkLib'):t('cBadLib'), S.errDetail||'');
+  return rows;
+}
+
+function connectionPanel(rows,busy){
+  const c=S.conn||CONN.get();
+  const line=r=>`<div style="display:flex;gap:9px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)">
+      <span class="chip ${r.ok?'c-green':'c-red'} chip-sm" style="min-width:74px;justify-content:center">
+        <span class="glyph">${r.ok?'✓':'✕'}</span>${esc(t(r.k))}</span>
+      <span style="flex:1;font-size:13px"><b style="font-weight:700">${esc(r.msg)}</b>
+      ${r.extra?`<br><small style="color:var(--text-3);word-break:break-all">${esc(r.extra)}</small>`:''}</span></div>`;
+  return `${busy?`<p style="margin:0 0 10px;color:var(--text-2);font-size:13px">${esc(t('running'))}</p>`:''}
+    <div>${rows.map(line).join('')||''}</div>
+    <div class="sec" style="margin-top:18px"><h4>${esc(t('connSettings'))}</h4>
+      ${c.override?`<div class="callout info" style="margin-bottom:10px">${svg(I.alert)}<span>${esc(t('usingOverride'))}</span></div>`:''}
+      <div class="fg"><label>${esc(t('projUrl'))}</label>
+        <input id="cn-url" value="${esc(c.url||'')}" placeholder="https://xxxxxxxx.supabase.co" dir="ltr"></div>
+      <div class="fg"><label>${esc(t('apiKey'))}</label>
+        <input id="cn-key" value="${esc(c.key||'')}" placeholder="sb_publishable_… / eyJhbGciOi…" dir="ltr"></div>
+    </div>`;
+}
+
+async function openConnectionCheck(){
+  const c=S.conn||CONN.get();
+  modal(t('connCheck'), connectionPanel([],true),
+    `<button class="btn ghost" data-act="close-modal">${esc(t('close'))}</button>
+     <button class="btn primary" data-act="save-conn">${esc(t('saveConn'))}</button>`, true);
+  const url=$('#cn-url')?$('#cn-url').value:c.url, key=$('#cn-key')?$('#cn-key').value:c.key;
+  const rows=await runDiagnostics(url,key);
+  const body=$('#modal-host .mb'); if(body) body.innerHTML=connectionPanel(rows,false);
+}
+
+/* ---------- 33. Events ---------- */
+document.addEventListener('click',e=>{
+  const el=e.target.closest('[data-act]'); if(!el) return;
+  const a=el.dataset.act, id=el.dataset.id, stop=()=>{e.preventDefault();e.stopPropagation();};
+  switch(a){
+    case 'nav': stop(); S.view=el.dataset.view; S.query=''; $('#q').value=''; location.hash=S.view;
+      $('#side').classList.remove('on'); closeDrawer(); render(); break;
+    case 'close-drawer': stop(); closeDrawer(); break;
+    case 'close-modal': stop(); pendingSave=null; closeModal(); break;
+    case 'open-meeting': stop(); openMeeting(id); break;
+    case 'new-meeting': stop(); pendingSave=null; meetingForm(); break;
+    case 'edit-meeting': stop(); pendingSave=null; meetingForm(id); break;
+    case 'save-meeting': stop(); saveMeeting(id||null); break;
+    case 'minutes': stop(); minutesForm(id); break;
+    case 'save-minutes': stop(); saveMinutes(id); break;
+    case 'copy-fu': stop(); copyFollowUps(id); break;
+    case 'set-status': stop(); setStatus(id,el.dataset.s); break;
+    case 'del-meeting': stop(); confirmDeleteMeeting(id); break;
+    case 'do-delete': stop(); deleteMeeting(id, el.dataset.series==='1'); break;
+    case 'new-program': stop(); programForm(); break;
+    case 'edit-program': stop(); programForm(id); break;
+    case 'save-program': stop(); saveProgram(id||null); break;
+    case 'del-program': stop(); confirmDeleteProgram(id); break;
+    case 'do-delete-program': stop();
+      DB.meetings.filter(m=>m.program_id===id).forEach(m=>Store.update('meetings',m.id,{program_id:null}));
+      Store.remove('programs',id); closeModal(); render(); toast(t('deletedOk')); break;
+    case 'new-user': stop(); userForm(); break;
+    case 'edit-profile': stop(); profileForm(id); break;
+    case 'save-profile': stop(); saveProfile(id); break;
+    case 'save-user': stop(); saveUser(); break;
+    case 'ag-add': stop(); { const h=$('#ag-rows'); h.insertAdjacentHTML('beforeend',agRow({},h.children.length)); } break;
+    case 'ag-del': stop(); { const h=$('#ag-rows'); if(h.children.length>1) el.closest('.rep-row').remove();
+      [...h.children].forEach((r,i)=>r.querySelector('.h').textContent=i+1); } break;
+    case 'fu-add': stop(); $('#fu-rows').insertAdjacentHTML('beforeend',fuRow()); break;
+    case 'fu-del': stop(); { const h=$('#fu-rows'); if(h.children.length>1) el.closest('.rep-row').remove(); } break;
+    case 'calview': stop(); S.calView=el.dataset.v; render(); break;
+    case 'cal-prev': stop();
+      if(S.calView==='month'){ S.calMonth--; if(S.calMonth<0){S.calMonth=11;S.calYear--;} }
+      else S.weekOf=addDays(new Date(S.weekOf),-7).toISOString();
+      render(); break;
+    case 'cal-next': stop();
+      if(S.calView==='month'){ S.calMonth++; if(S.calMonth>11){S.calMonth=0;S.calYear++;} }
+      else S.weekOf=addDays(new Date(S.weekOf),7).toISOString();
+      render(); break;
+    case 'cal-today': stop(); S.calMonth=new Date().getMonth(); S.calYear=new Date().getFullYear();
+      S.weekOf=startOfWeek(new Date()).toISOString(); render(); break;
+    case 'reset-mt': stop(); S.mt={kind:'',status:'',attendee:'',program:'',room:'',range:'',sort:'start_at'}; render(); break;
+    case 'read-all': stop(); buildNotifications().forEach(n=>S.reads.add(n.id)); $('#pop-host').innerHTML=''; updateBell(); break;
+    case 'open-notif': stop(); S.reads.add(el.dataset.nid); $('#pop-host').innerHTML=''; updateBell(); openMeeting(id); break;
+    case 'install': stop(); promptInstall(); break;
+    case 'check-conn': stop(); openConnectionCheck(); break;
+    case 'save-conn': stop(); {
+      const u=$('#cn-url').value.trim(), k=$('#cn-key').value.trim();
+      if(!u||!k){ toast(t('cBadUrl'),'bad'); break; }
+      CONN.set(u,k); toast(t('connSaved')); setTimeout(()=>location.reload(),700);
+    } break;
+    case 'reset-data': stop(); modal(t('resetData'),
+      `<p style="margin:0;font-size:14px;line-height:1.7">${esc(t('resetMsg'))}</p>`,
+      `<button class="btn ghost" data-act="close-modal">${esc(t('cancel'))}</button>
+       <button class="btn danger" data-act="do-reset">${esc(t('resetData'))}</button>`); break;
+    case 'do-reset': stop(); Local.clear(); TABLES.forEach(tb=>DB[tb]=[]); seed(); Local.save();
+      S.reads.clear(); closeModal(); closeDrawer(); render(); toast(t('savedOk')); break;
+  }
+});
+document.addEventListener('change',e=>{
+  const el=e.target;
+  if(el.dataset.mt){ S.mt[el.dataset.mt]=el.value; render(); return; }
+  if(el.dataset.pref){ S.prefs[el.dataset.pref]=el.checked; render(); updateBell(); return; }
+  if(el.dataset.role){ Store.update('users',el.dataset.role,{role:el.value});
+    if(el.dataset.role===S.user.id) S.user=byId('users',S.user.id); render(); toast(t('savedOk')); return; }
+});
+/* Keep end time trailing the start time by the default duration while composing. */
+document.addEventListener('input',e=>{
+  if(e.target.id==='f-start'){
+    const end=$('#f-end'); if(!end||!e.target.value) return;
+    if(!end.dataset.touched){ const d=new Date(e.target.value); d.setMinutes(d.getMinutes()+S.prefs.defaultDur);
+      end.value=toLocalInput(d.toISOString()); }
+  }
+  if(e.target.id==='f-end') e.target.dataset.touched='1';
+});
+$('#q').addEventListener('input',e=>{ S.query=e.target.value; clearTimeout(window._q);
+  window._q=setTimeout(()=>{ $('#page').innerHTML=S.query.trim()?viewSearch():(VIEWS[S.view]||viewDashboard)(); },220); });
+$('#lang').addEventListener('click',()=>setLang(LANG==='ar'?'en':'ar'));
+$('#theme').addEventListener('click',()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'));
+$('#bell').addEventListener('click',e=>{ e.stopPropagation(); togglePop(); });
+$('#burger').addEventListener('click',()=>$('#side').classList.toggle('on'));
+$('#scrim').addEventListener('click',()=>{ closeDrawer(); $('#side').classList.remove('on'); });
+$('#me-out').addEventListener('click',signOut);
+$('#fab').addEventListener('click',()=>{ canManage()?meetingForm():toast(t('emptyMine'),'warn'); });
+function loginError(msg,detail){
+  revealLogin();
+  const e=$('#lg-err'); e.classList.remove('hidden');
+  e.innerHTML = `<span>${esc(msg)}${detail?`<br><small style="opacity:.75;font-weight:600">${esc(t('details'))} ${esc(detail)}</small>`:''}</span>`;
+  const b=$('#lg-go'); b.disabled=false; b.textContent=t('signIn');
+  if(detail) console.warn('Sign-in failed:', msg, '—', detail);
+  const link=$('#lg-check');
+  if(link) link.classList.toggle('hidden', msg===t('badLogin'));
+}
+/* Match the signed-in Supabase account to its row in `users`. */
+async function afterAuth(authUser){
+  try{ await Store.loadAll(); }
+  catch(err){ return loginError(t('readErr'), err.message||String(err)); }
+  const me = DB.users.find(u=>u.auth_id===authUser.id)
+          || DB.users.find(u=>(u.email||'').toLowerCase()===(authUser.email||'').toLowerCase());
+  /* Say whether the table came back empty (policy or no rows) or simply
+     held no match for this address — they need opposite fixes. */
+  if(!me) return loginError(t('noProfile'),
+    `${t('signedInAs')} ${authUser.email||'—'} · ${DB.users.length} ${t('rowsVisible')}`);
+  if(me.active===false) return loginError(t('inactive'));
+  $('#lg-err').classList.add('hidden');
+  const b=$('#lg-go'); b.disabled=false; b.textContent=t('signIn');
+  signIn(me);
+  RT.start(); updateLivePill();
+  if(looksAutoNamed(me)) setTimeout(()=>profileForm(me.id,true),600);
+}
+async function attemptLogin(){
+  const em=$('#lg-email').value.trim(), pw=$('#lg-pass').value;
+  if(!em||!pw) return loginError(t('badLogin'));
+  const b=$('#lg-go'); b.disabled=true; b.textContent=t('signingIn');
+
+  if(S.mode==='live'){
+    try{
+      const {data,error}=await S.sb.auth.signInWithPassword({email:em,password:pw});
+      if(error){
+        /* Wrong password is a normal outcome; anything else is a fault
+           worth naming, so the two are not confused. */
+        const bad=/invalid login|invalid credentials|email not confirmed/i.test(error.message||'');
+        return loginError(bad?t('badLogin'):t('authErr'), bad?'':error.message);
+      }
+      if(!data||!data.user) return loginError(t('badLogin'));
+      return afterAuth(data.user);
+    }catch(err){ return loginError(t('connErr'), err.message||String(err)); }
+  }
+  if(S.mode==='error') return loginError(t('libErr'), S.errDetail);
+
+  const u=DB.users.find(x=>(x.email||'').toLowerCase()===em.toLowerCase());
+  if(!u) return loginError(t('badLogin'));
+  $('#lg-err').classList.add('hidden');
+  b.disabled=false; b.textContent=t('signIn');
+  signIn(u);
+}
+$('#lg-go').addEventListener('click',attemptLogin);
+$('#lg-pass').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#lg-go').click(); });
+$('#lg-email').addEventListener('keydown',e=>{ if(e.key==='Enter') $('#lg-pass').focus(); });
+$('#lg-lang').addEventListener('click',()=>setLang(LANG==='ar'?'en':'ar'));
+$('#lg-theme').addEventListener('click',()=>{
+  setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'); paintLogin();
+});
+document.addEventListener('click',e=>{ if(!e.target.closest('.pop')&&!e.target.closest('#bell')) $('#pop-host').innerHTML=''; });
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){ if($('#modal-host').innerHTML){pendingSave=null;closeModal();}
+    else if($('#drawer').classList.contains('on')) closeDrawer(); else $('#pop-host').innerHTML=''; }
+  if((e.ctrlKey||e.metaKey)&&e.key==='k'){ e.preventDefault(); $('#q').focus(); }
+});
+window.addEventListener('hashchange',()=>{ const v=location.hash.slice(1); if(v in VIEWS&&v!==S.view){ S.view=v; render(); } });
+
+/* ---------- 34. Install, offline state, updates ---------- */
+let installEvent=null;
+
+function refreshNetPill(){
+  const off=!navigator.onLine, pill=$('#net-pill');
+  if(!pill) return;
+  pill.classList.toggle('on',off);
+  $('#net-txt').textContent=t('offline');
+  if(S.view==='settings'&&S.user) render();
+}
+function detectStandalone(){
+  S.installed = window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone===true;
+}
+function promptInstall(){
+  if(!installEvent){ toast(t('installIOS'),'warn'); return; }
+  installEvent.prompt();
+  installEvent.userChoice.then(({outcome})=>{
+    installEvent=null; S.canInstall=false;
+    if(outcome==='accepted'){ S.installed=true; toast(t('installed')); }
+    if(S.view==='settings') render();
+  });
+}
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault(); installEvent=e; S.canInstall=true;
+  if(S.view==='settings'&&S.user) render();
+});
+window.addEventListener('appinstalled',()=>{
+  S.installed=true; S.canInstall=false; installEvent=null;
+  toast(t('installed')); if(S.view==='settings'&&S.user) render();
+});
+window.addEventListener('online',refreshNetPill);
+window.addEventListener('offline',refreshNetPill);
+
+/* Service worker: only over http(s). Opening the file directly still
+   works, it simply cannot install or cache. */
+async function registerSW(){
+  if(!('serviceWorker' in navigator)) return;
+  if(!/^https?:$/.test(location.protocol)) return;
+  try{
+    const reg=await navigator.serviceWorker.register('./sw.js',{scope:'./'});
+    reg.addEventListener('updatefound',()=>{
+      const sw=reg.installing; if(!sw) return;
+      sw.addEventListener('statechange',()=>{
+        if(sw.state==='installed'&&navigator.serviceWorker.controller){
+          const el=document.createElement('div');
+          el.className='toast warn';
+          el.innerHTML=`${esc(t('updateReady'))} — <button style="background:none;border:0;font:inherit;font-weight:800;color:var(--green);text-decoration:underline;padding:0">${esc(t('reload'))}</button>`;
+          el.querySelector('button').addEventListener('click',()=>{ sw.postMessage('skip-waiting'); location.reload(); });
+          $('#toasts').appendChild(el);
+        }
+      });
+    });
+  }catch(e){ console.warn('Service worker not registered:', e.message); }
+}
+
+/* ---------- 35. Boot ---------- */
+(async function boot(){
+  setTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+  await Store.init();
+  setLang('ar');
+  paintLogin();
+  detectStandalone();
+  refreshNetPill();
+  /* Already signed in on this device? Go straight through, keeping the
+     splash up so the login form never appears in between. */
+  if(S.mode==='live'&&S.sb){
+    try{
+      const {data}=await S.sb.auth.getSession();
+      if(data&&data.session&&data.session.user) await afterAuth(data.session.user);
+    }catch(e){ console.warn('Could not restore session:', e.message); }
+  }
+  if(!S.user) revealLogin(); else hideBoot();
+  updateLivePill();
+  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') RT.resync(); });
+  window.addEventListener('online',()=>{ RT.start(); RT.resync(); });
+  registerSW();
+  setTimeout(()=>{ if(!S.user) revealLogin(); },9000);   // safety net
+  setInterval(()=>{ if(S.user) updateBell(); },60000);
+  window.MDM={DB,S,Local,RT,CONN,diagnose:runDiagnostics,looksAutoNamed,byId,canManage,canEditMeeting,needsMinutes,findConflicts,render,Store,buildNotifications,attendeesOf,agendaOf,followUpsOf};
+})();
+</script>
+</body>
+</html>
