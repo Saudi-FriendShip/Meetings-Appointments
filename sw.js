@@ -6,7 +6,7 @@
    installed copies keep serving the old shell.
    ===================================================================== */
 
-const CACHE = 'sfc-meetings-v3';
+const CACHE = 'sfc-meetings-v4';
 
 const SHELL = [
   './',

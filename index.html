@@ -749,6 +749,14 @@ ar:{
   savedOk:'تم الحفظ', deletedOk:'تم الحذف', searchResults:'نتائج البحث عن «{q}»',
   live:'مباشر', liveOff:'غير متزامن', liveOn:'التحديثات تصل مباشرة من بقية الأجهزة',
   syncing:'جارٍ التحديث…', deletedElsewhere:'حُذف هذا الموعد من جهاز آخر',
+  whyNoInstall:'لماذا لا يظهر زر التثبيت؟', installCheck:'فحص جاهزية التثبيت',
+  iHttps:'الاتصال آمن', iManifest:'ملف الإعدادات', iIcons:'الأيقونات', iSw:'عامل الخدمة', iPrompt:'عرض المتصفح',
+  iOkHttps:'الصفحة تعمل عبر https', iBadHttps:'يجب فتح الموقع عبر https — التثبيت لا يعمل من ملف محلي',
+  iOkManifest:'تم العثور على manifest.webmanifest', iBadManifest:'تعذّر تحميل manifest.webmanifest — تأكد من رفعه بجانب index.html',
+  iOkIcons:'أيقونات ١٩٢ و٥١٢ موجودة', iBadIcons:'الأيقونات مفقودة — تأكد من رفع مجلد icons كاملاً',
+  iOkSw:'عامل الخدمة مسجّل', iBadSw:'عامل الخدمة غير مسجّل — تأكد من رفع sw.js بجانب index.html',
+  iOkPrompt:'المتصفح جاهز لعرض زر التثبيت', iWaitPrompt:'لم يعرض المتصفح زر التثبيت بعد — قد يكون التطبيق مثبّتاً، أو يحتاج تحديث الصفحة',
+  iInstalled:'التطبيق مثبّت بالفعل على هذا الجهاز',
   appSection:'التطبيق', install:'تثبيت التطبيق', installed:'التطبيق مثبّت على هذا الجهاز',
   installHint:'ثبّته ليعمل دون اتصال وليظهر كأي تطبيق على جهازك.',
   installIOS:'على الآيفون: من سفاري اضغط زر المشاركة ثم «إضافة إلى الشاشة الرئيسية».',
@@ -832,6 +840,14 @@ en:{
   savedOk:'Saved', deletedOk:'Deleted', searchResults:'Results for “{q}”',
   live:'Live', liveOff:'Not syncing', liveOn:'Changes from other devices arrive instantly',
   syncing:'Syncing…', deletedElsewhere:'This appointment was deleted on another device',
+  whyNoInstall:'Why is there no install button?', installCheck:'Install readiness check',
+  iHttps:'Secure origin', iManifest:'Manifest', iIcons:'Icons', iSw:'Service worker', iPrompt:'Browser prompt',
+  iOkHttps:'Served over https', iBadHttps:'Must be served over https — installing does not work from a local file',
+  iOkManifest:'manifest.webmanifest found', iBadManifest:'Could not load manifest.webmanifest — check it sits beside index.html',
+  iOkIcons:'192 and 512 icons present', iBadIcons:'Icons missing — check the whole icons folder was uploaded',
+  iOkSw:'Service worker registered', iBadSw:'No service worker — check sw.js sits beside index.html',
+  iOkPrompt:'Browser is ready to offer installation', iWaitPrompt:'Browser has not offered it yet — it may already be installed, or the page needs a reload',
+  iInstalled:'Already installed on this device',
   appSection:'App', install:'Install app', installed:'Installed on this device',
   installHint:'Install it to work offline and open it like any other app.',
   installIOS:'On iPhone: in Safari tap Share, then “Add to Home Screen”.',
@@ -1545,6 +1561,7 @@ function viewSettings(){
                ${S.canInstall
                  ? `<button class="btn gold" data-act="install" style="width:100%;justify-content:center">${svg(I.download)}${esc(t('install'))}</button>`
                  : `<div class="callout info">${svg(I.alert)}<span>${esc(t('installIOS'))}</span></div>`}`}
+          <button class="btn ghost" style="width:100%;justify-content:center;margin-top:9px" data-act="check-install">${esc(t('whyNoInstall'))}</button>
           <dl class="kv" style="margin-top:13px">
             <dt>${esc(t('storage'))}</dt><dd>${S.mode==='live'?esc(t('storageCloud')):esc(t('storageLocal'))}</dd>
             <dt>${esc(t('status'))}</dt><dd>${navigator.onLine?esc(t('onlineL')):esc(t('offline'))}</dd>
@@ -2206,6 +2223,7 @@ document.addEventListener('click',e=>{
     case 'open-notif': stop(); S.reads.add(el.dataset.nid); $('#pop-host').innerHTML=''; updateBell(); openMeeting(id); break;
     case 'install': stop(); promptInstall(); break;
     case 'check-conn': stop(); openConnectionCheck(); break;
+    case 'check-install': stop(); openInstallCheck(); break;
     case 'save-conn': stop(); {
       const u=$('#cn-url').value.trim(), k=$('#cn-key').value.trim();
       if(!u||!k){ toast(t('cBadUrl'),'bad'); break; }
@@ -2352,6 +2370,9 @@ async function registerSW(){
   if(!/^https?:$/.test(location.protocol)) return;
   try{
     const reg=await navigator.serviceWorker.register('./sw.js',{scope:'./'});
+    /* The worker is registered at this point; anything below is only the
+       update prompt, so it must never be able to undo that. */
+    if(!reg || typeof reg.addEventListener!=='function') return;
     reg.addEventListener('updatefound',()=>{
       const sw=reg.installing; if(!sw) return;
       sw.addEventListener('statechange',()=>{
@@ -2365,6 +2386,68 @@ async function registerSW(){
       });
     });
   }catch(e){ console.warn('Service worker not registered:', e.message); }
+}
+
+/* ---------- 34b. Install readiness ----------
+   Edge and Chrome only offer installation when every one of these holds.
+   Checking them individually says which one is missing. */
+async function runInstallChecks(){
+  const rows=[];
+  const add=(k,ok,msg,extra)=>rows.push({k,ok,msg,extra});
+
+  const secure = location.protocol==='https:' || location.hostname==='localhost';
+  add('iHttps', secure, secure?t('iOkHttps'):t('iBadHttps'), location.origin);
+  if(!secure) return rows;
+
+  const link=document.querySelector('link[rel="manifest"]');
+  const href=link?link.href:'';
+  let mf=null;
+  try{
+    const r=await fetch(href,{cache:'no-store'});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    mf=await r.json();
+    add('iManifest', true, t('iOkManifest'), href);
+  }catch(e){
+    add('iManifest', false, t('iBadManifest'), (href||'no <link rel=manifest>')+' — '+(e.message||e));
+    return rows;
+  }
+
+  const sizes=(mf.icons||[]).map(i=>String(i.sizes||''));
+  const has192=sizes.some(z=>/(^|\s)192x192/.test(z));
+  const has512=sizes.some(z=>/(^|\s)512x512/.test(z));
+  let reachable=true, missing='';
+  for(const ic of (mf.icons||[])){
+    try{
+      const u=new URL(ic.src, href);
+      const r=await fetch(u,{method:'GET',cache:'no-store'});
+      if(!r.ok){ reachable=false; missing+=(missing?', ':'')+ic.src+' ('+r.status+')'; }
+    }catch(e){ reachable=false; missing+=(missing?', ':'')+ic.src; }
+  }
+  const iconsOk = has192 && has512 && reachable;
+  add('iIcons', iconsOk, iconsOk?t('iOkIcons'):t('iBadIcons'),
+      missing || (has192&&has512 ? '' : 'declared: '+sizes.join(', ')));
+
+  let sw=null;
+  try{ if('serviceWorker' in navigator) sw = await navigator.serviceWorker.getRegistration(); }catch(e){}
+  add('iSw', !!sw, sw?t('iOkSw'):t('iBadSw'), sw?(sw.active?'active':'installing'):new URL('./sw.js',location.href).href);
+
+  detectStandalone();
+  if(S.installed) add('iPrompt', true, t('iInstalled'), '');
+  else add('iPrompt', S.canInstall, S.canInstall?t('iOkPrompt'):t('iWaitPrompt'), '');
+  return rows;
+}
+
+async function openInstallCheck(){
+  const line=r=>`<div style="display:flex;gap:9px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)">
+      <span class="chip ${r.ok?'c-green':'c-red'} chip-sm" style="min-width:88px;justify-content:center">
+        <span class="glyph">${r.ok?'✓':'✕'}</span>${esc(t(r.k))}</span>
+      <span style="flex:1;font-size:13px"><b style="font-weight:700">${esc(r.msg)}</b>
+      ${r.extra?`<br><small style="color:var(--text-3);word-break:break-all">${esc(r.extra)}</small>`:''}</span></div>`;
+  modal(t('installCheck'), `<p style="margin:0;color:var(--text-2);font-size:13px">${esc(t('running'))}</p>`,
+    `<button class="btn ghost" data-act="close-modal">${esc(t('close'))}</button>`, true);
+  const rows=await runInstallChecks();
+  const body=$('#modal-host .mb');
+  if(body) body.innerHTML=`<div>${rows.map(line).join('')}</div>`;
 }
 
 /* ---------- 35. Boot ---------- */
@@ -2390,7 +2473,7 @@ async function registerSW(){
   registerSW();
   setTimeout(()=>{ if(!S.user) revealLogin(); },9000);   // safety net
   setInterval(()=>{ if(S.user) updateBell(); },60000);
-  window.MDM={DB,S,Local,RT,CONN,diagnose:runDiagnostics,looksAutoNamed,byId,canManage,canEditMeeting,needsMinutes,findConflicts,render,Store,buildNotifications,attendeesOf,agendaOf,followUpsOf};
+  window.MDM={DB,S,Local,RT,CONN,diagnose:runDiagnostics,installChecks:runInstallChecks,looksAutoNamed,byId,canManage,canEditMeeting,needsMinutes,findConflicts,render,Store,buildNotifications,attendeesOf,agendaOf,followUpsOf};
 })();
 </script>
 </body>
