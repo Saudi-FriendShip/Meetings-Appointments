@@ -8,9 +8,7 @@
   "scope": "./",
   "display": "standalone",
   "display_override": [
-    "window-controls-overlay",
-    "standalone",
-    "browser"
+    "standalone"
   ],
   "orientation": "any",
   "background_color": "#0f1512",

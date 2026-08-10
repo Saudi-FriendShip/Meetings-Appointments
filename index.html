@@ -495,6 +495,10 @@ html[data-theme="dark"] .callout.info{color:#7fb0e0}
 .fu .mt svg{width:12px;height:12px;opacity:.7}
 
 /* ============ INSTALLED (standalone) ============ */
+@media (display-mode: window-controls-overlay){
+  .side-top{padding-top:calc(18px + env(titlebar-area-height,40px))}
+  .topbar{padding-top:calc(12px + env(titlebar-area-height,40px))}
+}
 @media (display-mode: standalone){
   .topbar{padding-top:calc(12px + env(safe-area-inset-top))}
   .side-top{padding-top:calc(18px + env(safe-area-inset-top))}
@@ -605,6 +609,15 @@ html[data-theme="dark"] .live-pill{color:#7fc394;background:rgba(63,143,82,.14);
 <div id="pop-host"></div>
 <div id="toasts" aria-live="polite"></div>
 <script>
+/* Register the service worker as the very first thing the page does.
+   Everything else — the Supabase library, the session, the data — can
+   wait; installability cannot, because the browser judges it moments
+   after load. Deliberately not awaited and not dependent on app state. */
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  navigator.serviceWorker.register('./sw.js', { scope: './' })
+    .catch(e => console.warn('Service worker registration failed:', e && e.message));
+}
+
 /* =========================================================================
    Meetings & Appointments Manager — Saudi Friends Association (SFC)
    Scope: meetings, appointments and their minutes. Task tracking lives in
@@ -2365,13 +2378,13 @@ window.addEventListener('offline',refreshNetPill);
 
 /* Service worker: only over http(s). Opening the file directly still
    works, it simply cannot install or cache. */
+/* Registration already happened at the top of the page. This only adds
+   the "update ready" prompt, and must never interfere with it. */
 async function registerSW(){
   if(!('serviceWorker' in navigator)) return;
   if(!/^https?:$/.test(location.protocol)) return;
   try{
-    const reg=await navigator.serviceWorker.register('./sw.js',{scope:'./'});
-    /* The worker is registered at this point; anything below is only the
-       update prompt, so it must never be able to undo that. */
+    const reg=await navigator.serviceWorker.getRegistration();
     if(!reg || typeof reg.addEventListener!=='function') return;
     reg.addEventListener('updatefound',()=>{
       const sw=reg.installing; if(!sw) return;
@@ -2385,7 +2398,7 @@ async function registerSW(){
         }
       });
     });
-  }catch(e){ console.warn('Service worker not registered:', e.message); }
+  }catch(e){ console.warn('Update prompt unavailable:', e.message); }
 }
 
 /* ---------- 34b. Install readiness ----------
@@ -2451,6 +2464,11 @@ async function openInstallCheck(){
 }
 
 /* ---------- 35. Boot ---------- */
+/* Register before anything that awaits the network. The browser decides
+   installability moments after load, and a worker registered seconds
+   later — or not at all, if a fetch hangs — misses that window. */
+registerSW();
+
 (async function boot(){
   setTheme(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
   await Store.init();
@@ -2470,7 +2488,6 @@ async function openInstallCheck(){
   updateLivePill();
   document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') RT.resync(); });
   window.addEventListener('online',()=>{ RT.start(); RT.resync(); });
-  registerSW();
   setTimeout(()=>{ if(!S.user) revealLogin(); },9000);   // safety net
   setInterval(()=>{ if(S.user) updateBell(); },60000);
   window.MDM={DB,S,Local,RT,CONN,diagnose:runDiagnostics,installChecks:runInstallChecks,looksAutoNamed,byId,canManage,canEditMeeting,needsMinutes,findConflicts,render,Store,buildNotifications,attendeesOf,agendaOf,followUpsOf};
